@@ -1,0 +1,360 @@
+# Omarchy Cursor - Cursor metadata configuration
+# Hotspots are in 256x256 canvas coordinates.
+# Symlinks provide compatibility aliases.
+
+[fallback]
+canvas_size = 256
+x_hotspot = 128
+y_hotspot = 128
+sizes = [24, 32, 48, 64, 96]
+animation_delay = 40
+animation_frames = 54
+stroke_width = 17
+
+# ── Pointers ──────────────────────────────────────────────
+
+[cursors.left_ptr]
+x_hotspot = 55
+y_hotspot = 17
+symlinks = ["arrow", "default", "top_left_arrow"]
+
+[cursors.right_ptr]
+x_hotspot = 204
+y_hotspot = 17
+symlinks = ["draft_large", "draft_small"]
+
+[cursors.center_ptr]
+x_hotspot = 127
+y_hotspot = 17
+
+# ── Hands ─────────────────────────────────────────────────
+
+[cursors.hand1]
+x_hotspot = 144
+y_hotspot = 79
+symlinks = ["grab", "openhand"]
+
+[cursors.hand2]
+x_hotspot = 114
+y_hotspot = 18
+symlinks = [
+    "9d800788f1b08800ae810202380a0822",
+    "e29285e634086352946a0e7090d73106",
+    "pointer",
+    "pointing_hand",
+]
+
+[cursors.grabbing]
+x_hotspot = 128
+y_hotspot = 66
+symlinks = [
+    "closedhand",
+    "dnd-move",
+    "dnd-none",
+    "fcf21c00b30f7e3f83fe0dfd12e71cff",
+]
+
+# ── Text ──────────────────────────────────────────────────
+
+[cursors.xterm]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = ["ibeam", "text"]
+
+[cursors.vertical-text]
+x_hotspot = 128
+y_hotspot = 128
+
+# ── Loading ───────────────────────────────────────────────
+
+[cursors.wait]
+x_hotspot = 128
+y_hotspot = 128
+animated = true
+symlinks = ["watch"]
+
+[cursors.left_ptr_watch]
+x_hotspot = 55
+y_hotspot = 17
+animated = true
+symlinks = [
+    "00000000000000020006000e7e9ffc3f",
+    "08e8e1c95fe2fc01f976f1e063a24ccd",
+    "3ecb610c1bf2410f44200f48c40d3599",
+    "progress",
+]
+
+# ── Resize ────────────────────────────────────────────────
+
+[cursors.top_side]
+x_hotspot = 128
+y_hotspot = 23
+symlinks = ["n-resize"]
+
+[cursors.bottom_side]
+x_hotspot = 129
+y_hotspot = 234
+symlinks = ["s-resize"]
+
+[cursors.left_side]
+x_hotspot = 21
+y_hotspot = 128
+symlinks = ["w-resize"]
+
+[cursors.right_side]
+x_hotspot = 233
+y_hotspot = 128
+symlinks = ["e-resize"]
+
+[cursors.top_left_corner]
+x_hotspot = 29
+y_hotspot = 24
+symlinks = ["nw-resize"]
+
+[cursors.top_right_corner]
+x_hotspot = 229
+y_hotspot = 24
+symlinks = ["ne-resize"]
+
+[cursors.bottom_left_corner]
+x_hotspot = 26
+y_hotspot = 232
+symlinks = ["sw-resize"]
+
+[cursors.bottom_right_corner]
+x_hotspot = 229
+y_hotspot = 232
+symlinks = ["se-resize"]
+
+[cursors.sb_h_double_arrow]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = [
+    "028006030e0e7ebffc7f7070c0600140",
+    "14fef782d02440884392942c1120523",
+    "col-resize",
+    "ew-resize",
+    "h_double_arrow",
+    "size-hor",
+    "size_hor",
+    "split_h",
+]
+
+[cursors.sb_v_double_arrow]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = [
+    "00008160000006810000408080010102",
+    "2870a09082c103050810ffdffffe0204",
+    "double_arrow",
+    "ns-resize",
+    "row-resize",
+    "size-ver",
+    "size_ver",
+    "split_v",
+    "v_double_arrow",
+]
+
+[cursors.bd_double_arrow]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = ["c7088f0f3e6c8088236ef8e1e3e70000", "nwse-resize", "size_fdiag"]
+
+[cursors.fd_double_arrow]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = ["fcf1c3c7cd4491d801f1e1c78f100000", "nesw-resize", "size_bdiag"]
+
+[cursors.move]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = [
+    "4498f0e0c1937ffe01fd06f973665830",
+    "9081237383d90e509aa00f00170e968f",
+    "all-scroll",
+    "fleur",
+    "size_all",
+]
+
+# ── Actions ───────────────────────────────────────────────
+
+[cursors.crosshair]
+x_hotspot = 128
+y_hotspot = 128
+
+[cursors.pencil]
+x_hotspot = 46
+y_hotspot = 211
+symlinks = ["draft"]
+
+[cursors.plus]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = ["cell"]
+
+[cursors.zoom-in]
+x_hotspot = 116
+y_hotspot = 116
+
+[cursors.zoom-out]
+x_hotspot = 116
+y_hotspot = 116
+
+[cursors.tcross]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = ["color-picker"]
+
+[cursors.dotbox]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = ["dot_box_mask", "draped_box", "icon", "target"]
+
+# ── DnD ───────────────────────────────────────────────────
+
+[cursors.copy]
+x_hotspot = 55
+y_hotspot = 17
+symlinks = [
+    "1081e37283d90000800003c07f3ef6bf",
+    "6407b0e94181790501fd1e167b474872",
+    "b66166c04f8c3109214a47bd64ab0fc8",
+]
+
+[cursors.link]
+x_hotspot = 55
+y_hotspot = 17
+symlinks = [
+    "3085a0e285430894940527032f8b26df",
+    "640fb0e74195791501fd1ed57b41487f",
+    "a2a266d0498c3104214a47bd64ab0fc8",
+]
+
+[cursors.dnd-ask]
+x_hotspot = 100
+y_hotspot = 65
+
+[cursors.dnd-copy]
+x_hotspot = 100
+y_hotspot = 65
+
+[cursors.dnd-link]
+x_hotspot = 100
+y_hotspot = 65
+symlinks = ["alias"]
+
+[cursors.dnd_no_drop]
+x_hotspot = 100
+y_hotspot = 65
+symlinks = ["no-drop"]
+
+# ── Misc ──────────────────────────────────────────────────
+
+[cursors.circle]
+x_hotspot = 55
+y_hotspot = 17
+symlinks = ["forbidden"]
+
+[cursors.crossed_circle]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = ["03b6e0fcb3499374a867c041f52298f0", "not-allowed"]
+
+[cursors.context-menu]
+x_hotspot = 57
+y_hotspot = 17
+
+[cursors.question_arrow]
+x_hotspot = 42
+y_hotspot = 86
+symlinks = [
+    "5c6cd98b3f3ebcb1f9c7f1c204630408",
+    "d9ce0ab605698f320427677b458ad60b",
+    "help",
+    "left_ptr_help",
+    "whats_this",
+]
+
+[cursors.X_cursor]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = ["pirate", "x-cursor"]
+
+[cursors.cross]
+x_hotspot = 128
+y_hotspot = 128
+symlinks = ["cross_reverse", "diamond_cross"]
+
+[cursors.pointer-move]
+x_hotspot = 55
+y_hotspot = 17
+
+[cursors.person]
+x_hotspot = 128
+y_hotspot = 128
+
+[cursors.pin]
+x_hotspot = 128
+y_hotspot = 40
+
+[cursors.wayland-cursor]
+x_hotspot = 128
+y_hotspot = 128
+
+# ── Arrows ────────────────────────────────────────────────
+
+[cursors.sb_up_arrow]
+x_hotspot = 128
+y_hotspot = 33
+symlinks = ["up-arrow"]
+
+[cursors.sb_down_arrow]
+x_hotspot = 128
+y_hotspot = 222
+symlinks = ["down-arrow"]
+
+[cursors.sb_left_arrow]
+x_hotspot = 33
+y_hotspot = 128
+symlinks = ["left-arrow"]
+
+[cursors.sb_right_arrow]
+x_hotspot = 223
+y_hotspot = 128
+symlinks = ["right-arrow"]
+
+# ── Tees ──────────────────────────────────────────────────
+
+[cursors.top_tee]
+x_hotspot = 128
+y_hotspot = 27
+
+[cursors.bottom_tee]
+x_hotspot = 128
+y_hotspot = 230
+
+[cursors.left_tee]
+x_hotspot = 230
+y_hotspot = 128
+
+[cursors.right_tee]
+x_hotspot = 29
+y_hotspot = 128
+
+# ── Angles ────────────────────────────────────────────────
+
+[cursors.ll_angle]
+x_hotspot = 30
+y_hotspot = 223
+
+[cursors.lr_angle]
+x_hotspot = 224
+y_hotspot = 230
+
+[cursors.ul_angle]
+x_hotspot = 33
+y_hotspot = 33
+
+[cursors.ur_angle]
+x_hotspot = 225
+y_hotspot = 33
