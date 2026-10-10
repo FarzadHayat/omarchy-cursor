@@ -11,6 +11,16 @@ Original cursor theme for Omarchy with custom SVG artwork, animated shapes, and 
 - **Full Coverage**: 55 unique shapes with full X11 symlink aliases.
 - **Hyprcursor Support**: Native Hyprcursor format generation alongside traditional Xcursor.
 
+## Preview
+
+![Static Cursors](preview/grid.png)
+
+### Animated Cursors
+<p align="center">
+  <img src="preview/wait.gif" alt="Wait Cursor" width="100"/>
+  <img src="preview/left_ptr_watch.gif" alt="Progress Cursor" width="100"/>
+</p>
+
 ## Installation
 
 ### Prerequisites
