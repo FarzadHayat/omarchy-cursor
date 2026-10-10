@@ -6,7 +6,6 @@ import argparse
 import subprocess
 import shutil
 import tomllib
-import glob
 from pathlib import Path
 
 try:
@@ -63,7 +62,8 @@ def build_xcursors(png_dir: Path, output_dir: Path, config: dict):
                 # Find all frames
                 frames = sorted(png_dir.glob(f"{name}-*.png"))
                 # Group by frame number
-                frame_numbers = sorted(list(set([f.stem.split('-')[-1].split('_')[0] for f in frames])))
+                import re
+                frame_numbers = sorted(list(set([re.search(r'-(\d+)_', f.name).group(1) for f in frames if re.search(r'-(\d+)_', f.name)])))
                 
                 for size in sizes:
                     scaled_x_hot = int(x_hot * size / canvas_size)
@@ -91,18 +91,19 @@ def build_xcursors(png_dir: Path, output_dir: Path, config: dict):
             print(f"Error running xcursorgen for {name}: {e}")
             
         # Create symlinks
-        symlinks = metadata.get("symlinks", [])
-        for symlink in symlinks:
-            symlink_path = output_dir / symlink
-            if not symlink_path.exists():
-                os.symlink(name, str(symlink_path))
+        if out_cursor.exists():
+            symlinks = metadata.get("symlinks", [])
+            for symlink in symlinks:
+                symlink_path = output_dir / symlink
+                if not symlink_path.exists():
+                    os.symlink(name, str(symlink_path))
 
 def create_theme_files(theme_dir: Path, theme_name: str):
     """Create index.theme."""
     index_content = f"""[Icon Theme]
 Name={theme_name}
 Comment=Omarchy cursor theme
-Inherits="hicolor"
+Inherits=hicolor
 """
     with open(theme_dir / "index.theme", "w") as f:
         f.write(index_content)

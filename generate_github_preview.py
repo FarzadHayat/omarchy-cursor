@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Generate images for GitHub README."""
 
-import os
 from pathlib import Path
 import re
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 def main():
     repo_root = Path(__file__).resolve().parent

@@ -40,8 +40,8 @@ def cross(canvas_size=256, base="#00FF00", outline="#0000FF") -> str:
     return get_base_svg("M 118,50 L 138,50 L 138,118 L 206,118 L 206,138 L 138,138 L 138,206 L 118,206 L 118,138 L 50,138 L 50,118 L 118,118 Z", base, outline)
 
 def pointer_move(canvas_size=256, base="#00FF00", outline="#0000FF") -> str:
-    arrow = "M 55,17 L 55,140 L 100,120 Z"
-    move_cross = "M 180,140 L 210,170 L 190,170 L 190,228 L 248,228 L 248,208 L 278,238 L 248,268 L 248,248 L 190,248 L 190,306 L 210,306 L 180,336 L 150,306 L 170,306 L 170,248 L 112,248 L 112,268 L 82,238 L 112,208 L 112,228 L 170,228 L 170,170 L 150,170 Z"
+    arrow = "M 55 17 L 42 185 L 85 140 L 145 238 L 170 220 L 112 125 L 165 110 Z"
+    move_cross = "M 180,150 L 195,165 L 185,165 L 185,195 L 215,195 L 215,185 L 230,200 L 215,215 L 215,205 L 185,205 L 185,235 L 195,235 L 180,250 L 165,235 L 175,235 L 175,205 L 145,205 L 145,215 L 130,200 L 145,185 L 145,195 L 175,195 L 175,165 L 165,165 Z"
     return get_base_svg([arrow, move_cross], base, outline)
 
 def person(canvas_size=256, base="#00FF00", outline="#0000FF") -> str:

@@ -6,17 +6,22 @@ from pathlib import Path
 from typing import Optional
 
 
+import tomllib
 def _parse_simple_toml(text: str) -> dict[str, str]:
-    """Minimal TOML parser that extracts key = "value" pairs."""
-    result: dict[str, str] = {}
-    for line in text.splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or line.startswith("["):
-            continue
-        m = re.match(r'^(\w+)\s*=\s*"([^"]*)"', line)
-        if m:
-            result[m.group(1)] = m.group(2)
-    return result
+    """Parse TOML and return a flat dictionary of strings."""
+    try:
+        data = tomllib.loads(text)
+        result = {}
+        for k, v in data.items():
+            if isinstance(v, dict):
+                for sub_k, sub_v in v.items():
+                    if isinstance(sub_v, str):
+                        result[sub_k] = sub_v
+            elif isinstance(v, str):
+                result[k] = v
+        return result
+    except Exception:
+        return {}
 
 
 def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
@@ -140,20 +145,6 @@ def compute_cursor_colors(
     return base.upper(), outline.upper(), watch.upper()
 
 
-def colorize_svg(svg_content: str, base: str, outline: str, watch: str) -> str:
-    """Replace color placeholders in SVG content.
-
-    Placeholders:
-        #00FF00 -> base (fill)
-        #0000FF -> outline (stroke)
-        #FF0000 -> watch (accent/loading)
-    """
-    result = svg_content
-    result = result.replace("#00FF00", base)
-    result = result.replace("#0000FF", outline)
-    result = result.replace("#FF0000", watch)
-    # Also handle lowercase variants
-    result = result.replace("#00ff00", base)
     result = result.replace("#0000ff", outline)
     result = result.replace("#ff0000", watch)
     return result

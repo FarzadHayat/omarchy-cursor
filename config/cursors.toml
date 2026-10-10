@@ -303,58 +303,11 @@ y_hotspot = 128
 
 # ── Arrows ────────────────────────────────────────────────
 
-[cursors.sb_up_arrow]
-x_hotspot = 128
-y_hotspot = 33
-symlinks = ["up-arrow"]
 
-[cursors.sb_down_arrow]
-x_hotspot = 128
-y_hotspot = 222
-symlinks = ["down-arrow"]
 
-[cursors.sb_left_arrow]
-x_hotspot = 33
-y_hotspot = 128
-symlinks = ["left-arrow"]
 
-[cursors.sb_right_arrow]
-x_hotspot = 223
-y_hotspot = 128
-symlinks = ["right-arrow"]
 
 # ── Tees ──────────────────────────────────────────────────
 
-[cursors.top_tee]
-x_hotspot = 128
-y_hotspot = 27
-
-[cursors.bottom_tee]
-x_hotspot = 128
-y_hotspot = 230
-
-[cursors.left_tee]
-x_hotspot = 230
-y_hotspot = 128
-
-[cursors.right_tee]
-x_hotspot = 29
-y_hotspot = 128
-
 # ── Angles ────────────────────────────────────────────────
 
-[cursors.ll_angle]
-x_hotspot = 30
-y_hotspot = 223
-
-[cursors.lr_angle]
-x_hotspot = 224
-y_hotspot = 230
-
-[cursors.ul_angle]
-x_hotspot = 33
-y_hotspot = 33
-
-[cursors.ur_angle]
-x_hotspot = 225
-y_hotspot = 33

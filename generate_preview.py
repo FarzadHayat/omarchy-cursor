@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate an HTML preview of all cursors."""
 
-import os
+import re
 from pathlib import Path
 
 def main():
@@ -13,7 +13,6 @@ def main():
         return
 
     # Find all 96px static cursors
-    static_pngs = sorted([p.name for p in png_dir.glob("*_96.png") if "-" not in p.name])
     
     # Identify animated cursors
     animated_groups = {}
@@ -27,7 +26,6 @@ def main():
             continue
             
         # Proper detection of animated frames
-        import re
         m = re.match(r'(.*?)-(\d+)_96\.png', p)
         if m:
             base_name, frame = m.groups()

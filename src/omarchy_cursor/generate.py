@@ -1,6 +1,5 @@
 """SVG generation orchestrator."""
 
-import os
 from pathlib import Path
 from .shapes import pointers, hands, text, resize, actions, dnd, loading, misc
 

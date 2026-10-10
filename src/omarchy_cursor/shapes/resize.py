@@ -45,10 +45,10 @@ def sb_v_double_arrow(canvas_size=256, base="#00FF00", outline="#0000FF") -> str
     return get_base_svg("M 128,30 L 158,70 L 138,70 L 138,186 L 158,186 L 128,226 L 98,186 L 118,186 L 118,70 L 98,70 Z", base, outline)
 
 def bd_double_arrow(canvas_size=256, base="#00FF00", outline="#0000FF") -> str:
-    return get_base_svg("M 34,34 L 84,34 L 84,54 L 68,54 L 188,174 L 172,174 L 172,154 L 222,154 L 222,204 L 202,204 L 202,188 L 82,68 L 82,84 L 54,84 L 54,84 Z M 34,34 L 54,34 L 54,54 Z M 222,204 L 202,204 L 202,224 Z", base, outline)
+    return get_base_svg("M 34,34 L 84,34 L 84,54 L 68,54 L 188,174 L 172,174 L 172,154 L 222,154 L 222,204 L 202,204 L 202,188 L 82,68 L 82,84 L 54,84 Z M 34,34 L 54,34 L 54,54 Z M 222,204 L 202,204 L 202,224 Z", base, outline)
 
 def fd_double_arrow(canvas_size=256, base="#00FF00", outline="#0000FF") -> str:
-    return get_base_svg("M 222,34 L 172,34 L 172,54 L 188,54 L 68,174 L 84,174 L 84,154 L 34,154 L 34,204 L 54,204 L 54,188 L 174,68 L 174,84 L 202,84 L 202,84 Z M 222,34 L 202,34 L 202,54 Z M 34,204 L 54,204 L 54,224 Z", base, outline)
+    return get_base_svg("M 222,34 L 172,34 L 172,54 L 188,54 L 68,174 L 84,174 L 84,154 L 34,154 L 34,204 L 54,204 L 54,188 L 174,68 L 174,84 L 202,84 Z M 222,34 L 202,34 L 202,54 Z M 34,204 L 54,204 L 54,224 Z", base, outline)
 
 def move(canvas_size=256, base="#00FF00", outline="#0000FF") -> str:
     return get_base_svg("M 128,30 L 158,60 L 138,60 L 138,118 L 196,118 L 196,98 L 226,128 L 196,158 L 196,138 L 138,138 L 138,196 L 158,196 L 128,226 L 98,196 L 118,196 L 118,138 L 60,138 L 60,158 L 30,128 L 60,98 L 60,118 L 118,118 L 118,60 L 98,60 Z", base, outline)
