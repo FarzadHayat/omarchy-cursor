@@ -87,8 +87,8 @@ def build_xcursors(png_dir: Path, output_dir: Path, config: dict):
         try:
             subprocess.run(["xcursorgen", str(cursor_file_path), str(out_cursor)], 
                            cwd=str(png_dir), check=True, capture_output=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error running xcursorgen for {name}: {e.stderr.decode()}")
+        except Exception as e:
+            print(f"Error running xcursorgen for {name}: {e}")
             
         # Create symlinks
         symlinks = metadata.get("symlinks", [])
