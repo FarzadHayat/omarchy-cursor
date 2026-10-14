@@ -338,6 +338,7 @@ def main():
     if args.site:
         test_page(args.site / "themes.js", hosted=True)
         page = (ROOT / "test.html").read_text().replace('src="test/themes.js"', 'src="themes.js"')
+        page = page.replace("<title>Omarchy Cursor test area</title>", "<title>Omarchy Cursor</title>")
         (args.site / "index.html").write_text(page)
         print(f"Wrote site to {args.site}")
         return
