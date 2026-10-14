@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Omarchy Pixel Cursors test area</title>
 <meta name="description" content="Animated 8-bit cursors that match your Omarchy theme. Try them in your browser.">
+<link rel="icon" type="image/png" href="favicon.png">
+<meta property="og:title" content="Omarchy Pixel Cursors">
+<meta property="og:description" content="Animated 8-bit cursors that recolor themselves to match your Omarchy theme. Try them in your browser.">
+<meta property="og:image" content="https://cursors.farzadhayat.dev/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://cursors.farzadhayat.dev/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   :root {
     --bg: #121c2b;
@@ -439,7 +448,8 @@
       for (const [name, art] of Object.entries(data.art)) {
         out[name] = {
           ...art,
-          cursor: art.frames.map(f => renderFrame(f, pal, 2)),
+          // The installed cursor's 24px size at 100%, 150% and 200% display scale.
+          cursor: art.frames.map(f => [24, 36, 48].map(size => renderAt(f, pal, size, art.hotspot))),
           icon: centered(art.frames).map(f => renderFrame(f, pal, 3)),
         };
       }
@@ -448,10 +458,21 @@
     return cache.get(key);
   }
 
-  // The 2x image is shown at 24 CSS pixels, the size the installed cursor uses.
+  // Shown at 24 CSS pixels; the browser picks the image drawn for the screen's scale.
   function cssCursor(cur, frame, fallback) {
-    const [x, y] = cur.hotspot.map(v => Math.round((v * 2 + 1) / 1.5));
-    return `image-set(url("${cur.cursor[frame % cur.cursor.length]}") 1.5x) ${x} ${y}, ${fallback}`;
+    const [x, y] = cur.hotspot.map(v => Math.round((v + 0.5) / 18 * 24));
+    const [one, mid, two] = cur.cursor[frame % cur.cursor.length];
+    return `image-set(url("${one}") 1x, url("${mid}") 1.5x, url("${two}") 2x) ${x} ${y}, ${fallback}`;
+  }
+
+  // Which frame is showing after ms milliseconds, with each frame's own delay.
+  function frameAt(cur, ms) {
+    const total = cur.delays.reduce((a, b) => a + b, 0);
+    let t = ms % total;
+    for (let i = 0; i < cur.delays.length; i++) {
+      if ((t -= cur.delays[i]) < 0) return i;
+    }
+    return 0;
   }
 
   // Animated icons and the hovered cursor share one clock.
@@ -461,16 +482,16 @@
     tick++;
     if (paradeWait && !reduceMotion) {
       const cur = current.wait;
-      paradeWait.src = cur.icon[Math.floor(tick * 40 / cur.delay) % cur.icon.length];
+      paradeWait.src = cur.icon[frameAt(cur, tick * 20)];
     }
     for (const t of tiles) {
       const cur = current[t.name];
       if (cur.frames.length < 2) continue;
-      const frame = Math.floor(tick * 40 / cur.delay);
+      const frame = frameAt(cur, tick * 20);
       if (!reduceMotion || t === hovered) t.img.src = cur.icon[frame % cur.icon.length];
       if (t === hovered && !installed) t.li.style.cursor = cssCursor(cur, frame, t.name);
     }
-  }, 40);
+  }, 20);
 
   for (const t of tiles) {
     t.li.addEventListener("pointerenter", () => { hovered = t; });

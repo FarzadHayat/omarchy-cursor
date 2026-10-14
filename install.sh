@@ -1,6 +1,7 @@
 #!/bin/bash
 # Install Omarchy Pixel Cursors, make it the active cursor, and keep it in sync
-# with the Omarchy theme. Options go to build.py and are kept for every rebuild:
+# with the Omarchy theme. Options go to build.py and are saved for every rebuild
+# (in ~/.config/omarchy-pixel-cursors/config.json):
 #   ./install.sh --style light --size 36
 # Undo with ./uninstall.sh.
 
@@ -21,14 +22,12 @@ if (( ${#missing[@]} )); then
   exit 1
 fi
 
-# Launcher used by the hooks. It remembers the options given here.
+# Launcher used by the hooks and the Omarchy menu.
 mkdir -p "$(dirname "$bin")"
-saved=""
-(( $# )) && saved="$(printf ' %q' "$@")"
-printf '#!/bin/bash\nexec python3 %q%s "$@"\n' "$repo/build.py" "$saved" >"$bin"
+printf '#!/bin/bash\nexec python3 %q "$@"\n' "$repo/build.py" >"$bin"
 chmod +x "$bin"
 
-"$bin" --apply
+"$bin" --save --apply "$@"
 
 # Keep the cursor across restarts. Omarchy reads session settings from
 # ~/.config/uwsm/env.d, which its config resets leave alone. Setups without
@@ -74,4 +73,8 @@ for pair in theme-set:omarchy-cursor-sync post-boot:omarchy-cursor-boot; do
     chmod +x "$HOME/.config/omarchy/hooks/$event.d/${pair#*:}"
   fi
 done
-echo "Done. The cursor now follows your Omarchy theme."
+
+# Style > Cursor in the Omarchy menu.
+[[ -d $HOME/.config/omarchy ]] && python3 "$repo/menu.py" install
+
+echo "Done. The cursor now follows your Omarchy theme. Change it in the Omarchy menu under Style > Cursor."

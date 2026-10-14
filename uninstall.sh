@@ -9,6 +9,8 @@ mark="omarchy-cursor"
 theme="Omarchy-Cursor"
 
 rm -f "$HOME/.local/bin/omarchy-cursor"
+rm -rf "$HOME/.config/omarchy-pixel-cursors"
+python3 "$(cd "$(dirname "$0")" && pwd)/menu.py" remove
 
 for hook in theme-set.d/omarchy-cursor-sync post-boot.d/omarchy-cursor-boot; do
   hook="$HOME/.config/omarchy/hooks/$hook"

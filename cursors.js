@@ -133,6 +133,35 @@ function renderFrame(rows, colors, scale) {
   return canvas.toDataURL();
 }
 
+// Mirrors placement() in pixelart.py: the largest whole number scale that fits
+// a size x size image, shifted so the hotspot sits at the same fraction at every size.
+function placement(hotspot, size, canvas = 18) {
+  const scale = Math.max(1, Math.floor(size / canvas));
+  const room = Math.max(0, size - canvas * scale);
+  const [ox, oy] = hotspot.map(h => Math.min(room, Math.max(0, roundHalfEven((h + 0.5) / canvas * size - (h + 0.5) * scale))));
+  return { scale, ox, oy };
+}
+
+// One frame drawn into a size x size PNG data URL, placed like the installed cursor.
+function renderAt(rows, colors, size, hotspot) {
+  const { scale, ox, oy } = placement(hotspot, size, rows.length);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  const image = ctx.createImageData(size, size);
+  rows.forEach((row, y) => [...row].forEach((key, x) => {
+    const color = colors[key];
+    if (!color) return;
+    for (let py = 0; py < scale; py++) {
+      for (let px = 0; px < scale; px++) {
+        image.data.set(color, ((oy + y * scale + py) * size + ox + x * scale + px) * 4);
+      }
+    }
+  }));
+  ctx.putImageData(image, 0, 0);
+  return canvas.toDataURL();
+}
+
 // Frames shifted so the drawing sits in the middle of its square, for icons.
 // One offset for all frames, so animations don't jitter.
 function centered(frames) {
@@ -150,4 +179,4 @@ function centered(frames) {
     Array.from({ length: size }, (_, x) => (rows[y - dy] || "")[x - dx] || ".").join("")));
 }
 
-if (typeof module !== "undefined") module.exports = { palette, parseColors };
+if (typeof module !== "undefined") module.exports = { palette, parseColors, placement };

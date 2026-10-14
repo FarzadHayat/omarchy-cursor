@@ -33,13 +33,16 @@ The installer:
 - installs the theme to `~/.local/share/icons/Omarchy-Cursor` and makes it the active cursor,
 - keeps it across restarts and Omarchy config resets with `~/.config/uwsm/env.d/50-omarchy-pixel-cursors`,
 - makes it the default for apps that pick their own cursor,
-- adds hooks that rebuild the cursor when you switch themes and re-apply it at login.
+- adds hooks that rebuild the cursor when you switch themes and re-apply it at login,
+- adds Style > Cursor to the Omarchy menu.
 
 The hooks run the copy you installed from, so keep the folder where it is. If you move it, run `install.sh` again from the new place. If a rebuild fails you get a notification, and the details are in `~/.local/state/omarchy-cursor.log`.
 
 ## Style and size
 
-Pass options to the installer and they stick, including through theme switches:
+Open the Omarchy menu and go to **Style > Cursor** to switch between the accent, light and dark styles and three sizes. The current choice has a ✓.
+
+From a terminal, pass options to the installer and they stick, including through theme switches:
 
 ```bash
 curl -fsSL https://cursors.farzadhayat.dev/install | bash -s -- --style light --size 36
@@ -55,7 +58,7 @@ curl -fsSL https://cursors.farzadhayat.dev/install | bash -s -- --style light --
 ~/.local/share/omarchy-pixel-cursors/uninstall.sh
 ```
 
-This removes the theme, hooks and settings and puts your previous cursor settings back.
+This removes the theme, hooks, menu entries and settings and puts your previous cursor settings back.
 
 ## Testing
 
@@ -68,6 +71,7 @@ This removes the theme, hooks and settings and puts your previous cursor setting
 - `cursors.js`, `test.html`: the test page, which draws cursors in the browser
 - `docs/`: the hosted site, rebuilt with `./build.py --site docs`
 - `hooks/`: Omarchy `theme-set` and `post-boot` hooks
+- `menu.py`: adds and removes the Omarchy menu entries
 - `install.sh`, `uninstall.sh`, `web-install.sh` (served as the one line installer)
 - `tests/check.py`: checks hotspots, a full build, and that the site's colors match; CI runs it on every push
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+
+- Style > Cursor in the Omarchy menu switches style and size, with a ✓ on the current choice. Choices are saved in `~/.config/omarchy-pixel-cursors/config.json`.
+- The wait hourglass now flips with a smooth half turn instead of jumping.
+- Clearer thumb on the grabbing hand.
+- The site shows cursors drawn for 100%, 150% and 200% screens, and has a tab icon and a preview card for links.
+
 ## 1.0.0
 
 First release.

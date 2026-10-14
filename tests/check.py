@@ -60,7 +60,7 @@ def full_build():
 
 
 def site_colors():
-    """The website draws cursors in exactly the colors the installed theme uses."""
+    """The website draws cursors in the same colors and positions as the installed theme."""
     if not shutil.which("node"):
         print("node not found, skipping the website color check")
         return
@@ -71,7 +71,7 @@ def site_colors():
             pal["%"] = pal.pop("shadow")
             expected[f"{n}/{style}"] = {k: list(v) for k, v in pal.items()}
     script = """
-        const { palette } = require(process.argv[1]);
+        const { palette, placement } = require(process.argv[1]);
         const [themes, expected] = JSON.parse(require("fs").readFileSync(0, "utf8"));
         const bad = [];
         for (const [key, want] of Object.entries(expected)) {
@@ -81,8 +81,15 @@ def site_colors():
             if (JSON.stringify(got[k]) !== JSON.stringify(want[k])) bad.push(`${key} ${k}`);
           }
         }
+        for (const [hotspot, size, want] of PLACEMENTS) {
+          const p = placement(hotspot, size);
+          if (JSON.stringify([p.scale, p.ox, p.oy]) !== JSON.stringify(want)) bad.push(`placement ${hotspot} at ${size}`);
+        }
         console.log(JSON.stringify(bad));
     """
+    placements = [[list(c.hotspot), size, list(pixelart.placement(c.hotspot, size)[:3])]
+                  for c in pixelart.all_cursors() for size in (24, 30, 36, 42, 48, 60)]
+    script = f"const PLACEMENTS = {json.dumps(placements)};" + script
     result = subprocess.run(["node", "-e", script, str(ROOT / "cursors.js")],
                             input=json.dumps([SAMPLE_THEMES, expected]), capture_output=True, text=True)
     check(result.returncode == 0, f"website color check crashed: {result.stderr.strip()}")

@@ -66,6 +66,32 @@ class Grid:
                 g.px[y][x] = self.get(sx, sy)
         return g
 
+    def rotate(self, degrees, scale=1.0, samples=4, coverage=0.3):
+        """Clockwise turn around the center pixel.
+
+        Each pixel samples a grid of points in the source and takes the most
+        common color if enough of them land on the shape, so thin lines stay
+        unbroken instead of the gaps plain nearest pixel turning leaves.
+        """
+        t = math.radians(degrees)
+        c, s = math.cos(t) / scale, math.sin(t) / scale
+        mid = N // 2
+        offsets = [(i + 0.5) / samples - 0.5 for i in range(samples)]
+        g = Grid()
+        for y in range(N):
+            for x in range(N):
+                counts = {}
+                for oy in offsets:
+                    for ox in offsets:
+                        dx, dy = x + ox - mid, y + oy - mid
+                        sx, sy = round(mid + dx * c + dy * s), round(mid - dx * s + dy * c)
+                        key = self.get(sx, sy)
+                        if key != ".":
+                            counts[key] = counts.get(key, 0) + 1
+                if sum(counts.values()) >= coverage * samples * samples:
+                    g.px[y][x] = max(counts, key=counts.get)
+        return g
+
     def rot90(self):  # clockwise
         return self.map(lambda x, y: (y, N - 1 - x))
 
@@ -155,7 +181,9 @@ class Cursor:
         self.hotspot = hotspot  # art pixel
         self.frames = frames  # list of Grid
         self.aliases = list(aliases)
-        self.delay = delay
+        # One delay for every frame, or a list with one per frame.
+        self.delays = list(delay) if isinstance(delay, (list, tuple)) else [delay] * len(frames)
+        self.delay = self.delays[0]
 
 
 # ── Art ───────────────────────────────────────────────────
@@ -214,10 +242,10 @@ GRABBING = Grid([
     ".................",
     "....##.##.##.##..",
     "....##X##X##X##..",
-    "..#############..",
-    "..###X#########..",
-    "...#X##########..",
     "...############..",
+    "...XXXXX#######..",
+    "..######X######..",
+    "...#####X######..",
     "....##########...",
     ".....########....",
 ])
@@ -463,8 +491,13 @@ def all_cursors(frames=16, delay=70):
     yield Cursor("all-scroll", (8, 8), [scroll], ["scroll"])
 
     sand = [hourglass(i / (frames - 1)) for i in range(frames)]
-    wait = sand + [sand[-1], sand[-1].rot90()]  # hold, then a quarter turn back to the start
-    yield Cursor("wait", (8, 8), wait, ["watch", "clock"], delay * 2)
+    # Drain, rest, then flip a half turn in small steps. The half turn lands on
+    # a full top bulb, which is the first frame, so the loop is seamless.
+    # It shrinks a little mid turn, as if lifted, which also keeps the corners in frame.
+    turn = [sand[-1].rotate(a, 1 - 0.22 * math.sin(math.radians(a))) for a in range(20, 180, 20)]
+    wait = sand + [sand[-1]] + turn
+    delays = [delay * 2] * len(sand) + [delay * 4] + [delay // 2 + 5] * len(turn)
+    yield Cursor("wait", (8, 8), wait, ["watch", "clock"], delays)
     progress = [with_badge(mini_spinner(i)) for i in range(len(RING))]
     yield Cursor("progress", (1, 1), progress,
                  ["left_ptr_watch", "half-busy", "00000000000000020006000e7e9ffc3f",

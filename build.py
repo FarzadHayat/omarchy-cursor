@@ -23,6 +23,8 @@ import pixelart
 
 THEME_NAME = "Omarchy-Cursor"
 SITE_DOMAIN = "cursors.farzadhayat.dev"
+CONFIG = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "omarchy-pixel-cursors/config.json"
+SAVED = ("style", "size", "body", "rim")  # options --save keeps for later rebuilds
 SIZES = [24, 32, 36, 48, 64, 72, 96]
 ROOT = Path(__file__).resolve().parent
 HOME = Path.home()
@@ -193,20 +195,20 @@ def render(cursors, pal, work, hypr_dir, size):
         ]
         if cur.aliases:
             meta.append("define_override = " + ";".join(cur.aliases))
-        delay = f", {cur.delay}" if cur.delay else ""
         lines = []
         for i, grid in enumerate(cur.frames):
             finished = pixelart.finish(grid)
+            delay = cur.delays[i]
             for s in sorted(set(hypr) | set(xcur)):
                 k, ox, oy, x, y = pixelart.placement(cur.hotspot, s)
                 image = pixelart.png(finished, colors, k, s, (ox, oy))
                 if s in hypr:
                     (sdir / f"{cur.name}-{s}-{i:02d}.png").write_bytes(image)
-                    meta.append(f"define_size = {s}, {cur.name}-{s}-{i:02d}.png{delay}")
+                    meta.append(f"define_size = {s}, {cur.name}-{s}-{i:02d}.png" + (f", {delay}" if delay else ""))
                 if s in xcur:
                     png = pdir / f"{s}-{i:02d}.png"
                     png.write_bytes(image)
-                    lines.append(f"{s} {x} {y} {png}" + (f" {cur.delay}" if cur.delay else ""))
+                    lines.append(f"{s} {x} {y} {png}" + (f" {delay}" if delay else ""))
         (sdir / "meta.hl").write_text("\n".join(meta) + "\n")
         xlines[cur.name] = lines
     return xlines
@@ -308,8 +310,8 @@ def preview(cursors, work, pal, colors, dest):
     for cur in cursors:
         if len(cur.frames) > 1:
             frames = sorted((work / "png" / cur.name).glob("96-*.png"))
-            run(["magick", "-delay", str(max(2, cur.delay // 10)), "-dispose", "background",
-                 *map(str, frames), "-background", colors["background"], "-alpha", "remove",
+            timed = [arg for d, f in zip(cur.delays, frames) for arg in ("-delay", str(max(2, d // 10)), str(f))]
+            run(["magick", "-dispose", "background", *timed, "-background", colors["background"], "-alpha", "remove",
                  "-loop", "0", str(dest / f"{cur.name}.gif")])
 
 
@@ -337,7 +339,7 @@ def test_page(dest, hosted=False):
         "hosted": hosted,
         "themes": {name: {k: v for k, v in load_colors(str(path))[0].items() if k in keys}
                    for name, path in sorted(themes.items())},
-        "art": {cur.name: {"hotspot": list(cur.hotspot), "delay": cur.delay,
+        "art": {cur.name: {"hotspot": list(cur.hotspot), "delays": cur.delays,
                            "frames": [["".join("%" if c == "shadow" else c for c in row)
                                        for row in pixelart.finish(g)] for g in cur.frames]}
                 for cur in pixelart.all_cursors()},
@@ -345,6 +347,53 @@ def test_page(dest, hosted=False):
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text("window.CURSOR_THEMES = " + json.dumps(data, separators=(",", ":")) + ";\n")
     print(f"Wrote {len(themes)} themes to {dest}")
+
+
+def centered_png(cur, colors, scale, size):
+    """A cursor's first frame trimmed to its pixels and centered in a square, for icons and cards."""
+    grid = pixelart.finish(cur.frames[0])
+    cells = [(x, y) for y, row in enumerate(grid) for x, c in enumerate(row) if c != "."]
+    x0, x1 = min(x for x, _ in cells), max(x for x, _ in cells)
+    y0, y1 = min(y for _, y in cells), max(y for _, y in cells)
+    trimmed = [row[x0:x1 + 1] for row in grid[y0:y1 + 1]]
+    while scale > 1 and max(len(trimmed), len(trimmed[0])) * scale > size:
+        scale -= 1
+    offset = ((size - len(trimmed[0]) * scale) // 2, (size - len(trimmed) * scale) // 2)
+    return pixelart.png(trimmed, colors, scale, size, offset)
+
+
+def site_images(dest):
+    """Tab icon and the 1200x630 card shown when the site is shared."""
+    need("magick")
+    colors, _ = load_colors("tokyo-night")
+    pal = png_colors(Palette(colors))
+    cursors = {c.name: c for c in pixelart.all_cursors()}
+    (dest / "favicon.png").write_bytes(centered_png(cursors["default"], pal, 2, 32))
+    work = Path(tempfile.mkdtemp())
+    try:
+        icons = []
+        for name in ("default", "pointer", "grab", "text", "wait", "help"):
+            icons.append(work / f"{name}.png")
+            icons[-1].write_bytes(centered_png(cursors[name], pal, 7, 140))
+        font = subprocess.run(["fc-match", "-f", "%{file}", "monospace:style=Bold"],
+                              capture_output=True, text=True).stdout.strip()
+        run(["magick", "-size", "1200x630", f"xc:{colors['background']}",
+             "(", *map(str, icons), "+append", ")", "-gravity", "center", "-geometry", "+0+70", "-composite",
+             "-font", font, "-fill", colors["accent"], "-pointsize", "64",
+             "-gravity", "north", "-annotate", "+0+90", "Omarchy Pixel Cursors",
+             "-fill", colors["foreground"], "-pointsize", "28",
+             "-annotate", "+0+190", "Animated 8-bit cursors that match your theme",
+             str(dest / "social.png")])
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+def saved_options():
+    try:
+        data = json.loads(CONFIG.read_text())
+        return {k: v for k, v in data.items() if k in SAVED and v is not None}
+    except (OSError, ValueError):
+        return {}
 
 
 def main():
@@ -361,7 +410,13 @@ def main():
     parser.add_argument("--preview", type=Path, metavar="DIR", help="write preview sheets and GIFs")
     parser.add_argument("--test-page", action="store_true", help="render every theme for test.html")
     parser.add_argument("--site", type=Path, metavar="DIR", help="write a hosted copy of the test page")
+    parser.add_argument("--save", action="store_true",
+                        help=f"remember --style, --size, --body and --rim in {CONFIG} for later rebuilds")
+    parser.set_defaults(**saved_options())
     args = parser.parse_args()
+    if args.save:
+        CONFIG.parent.mkdir(parents=True, exist_ok=True)
+        CONFIG.write_text(json.dumps({k: getattr(args, k) for k in SAVED if getattr(args, k) is not None}) + "\n")
 
     if args.test_page:
         test_page(ROOT / "test" / "themes.js")
@@ -373,6 +428,7 @@ def main():
         (args.site / "index.html").write_text(page)
         shutil.copy(ROOT / "cursors.js", args.site / "cursors.js")
         shutil.copy(ROOT / "web-install.sh", args.site / "install")  # curl ... | bash
+        site_images(args.site)
         (args.site / "CNAME").write_text(f"{SITE_DOMAIN}\n")  # custom domain for GitHub Pages
         print(f"Wrote site to {args.site}")
         return
