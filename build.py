@@ -22,6 +22,7 @@ from pathlib import Path
 import pixelart
 
 THEME_NAME = "Omarchy-Cursor"
+SITE_DOMAIN = "cursors.farzadhayat.dev"
 SIZES = [24, 32, 36, 48, 64, 72, 96]
 ROOT = Path(__file__).resolve().parent
 HOME = Path.home()
@@ -333,9 +334,10 @@ def main():
     if args.site:
         test_page(args.site / "themes.js", hosted=True)
         page = (ROOT / "test.html").read_text().replace('src="test/themes.js"', 'src="themes.js"')
-        page = page.replace("<title>Omarchy Cursor test area</title>", "<title>Omarchy Cursor</title>")
+        page = page.replace("<title>Omarchy Pixel Cursors test area</title>", "<title>Omarchy Pixel Cursors</title>")
         (args.site / "index.html").write_text(page)
         shutil.copy(ROOT / "cursors.js", args.site / "cursors.js")
+        (args.site / "CNAME").write_text(f"{SITE_DOMAIN}\n")  # custom domain for GitHub Pages
         print(f"Wrote site to {args.site}")
         return
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Omarchy Cursor test area</title>
+<title>Omarchy Pixel Cursors test area</title>
 <meta name="description" content="Animated 8-bit cursors that match your Omarchy theme. Try them in your browser.">
 <style>
   :root {
@@ -133,12 +133,12 @@
 <body>
 <header class="hero">
   <div class="parade" aria-hidden="true" id="parade"></div>
-  <h1>Omarchy <span>Cursor</span></h1>
+  <h1>Omarchy <span>Pixel Cursors</span></h1>
   <p class="tagline" id="tagline">Test area. Hover a tile to see that cursor on your real pointer.</p>
   <div class="install" id="install" hidden>
-    <a class="button primary" href="https://github.com/FarzadHayat/omarchy-cursor">Install from GitHub</a>
+    <a class="button primary" href="https://github.com/FarzadHayat/omarchy-pixel-cursors">Install from GitHub</a>
     <div class="command">
-      <code id="command" tabindex="0" aria-label="Install command">omarchy pkg add xorg-xcursorgen &amp;&amp; git clone https://github.com/FarzadHayat/omarchy-cursor.git ~/.local/share/omarchy-cursor &amp;&amp; ~/.local/share/omarchy-cursor/install.sh</code>
+      <code id="command" tabindex="0" aria-label="Install command">omarchy pkg add xorg-xcursorgen &amp;&amp; git clone https://github.com/FarzadHayat/omarchy-pixel-cursors.git ~/.local/share/omarchy-pixel-cursors &amp;&amp; ~/.local/share/omarchy-pixel-cursors/install.sh</code>
       <button type="button" id="copy">Copy</button>
     </div>
   </div>
@@ -166,7 +166,7 @@
 
 <footer>
   <p>Needs a mouse or trackpad. Made for <a href="https://omarchy.org">Omarchy</a>.
-    <a href="https://github.com/FarzadHayat/omarchy-cursor">Source on GitHub</a>.</p>
+    <a href="https://github.com/FarzadHayat/omarchy-pixel-cursors">Source on GitHub</a>.</p>
 </footer>
 <p class="visually-hidden" aria-live="polite" id="status"></p>
 
@@ -315,7 +315,7 @@
     document.getElementById("load-help").textContent = "Run ./build.py --test-page to enable the previews.";
   } else {
     if (hosted) {
-      document.title = "Omarchy Cursor";
+      document.title = "Omarchy Pixel Cursors";
       document.getElementById("tagline").textContent =
         "Animated 8-bit cursors that recolor themselves to match your Omarchy theme. Hover a tile to try one on your pointer.";
       document.getElementById("install").hidden = false;

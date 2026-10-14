@@ -1,8 +1,8 @@
-# Omarchy Cursor
+# Omarchy Pixel Cursors
 
 Animated 8-bit cursors for [Omarchy](https://omarchy.org) that take their colors from your theme. Switch themes and the cursor rebuilds itself to match.
 
-**[Try them in your browser](https://farzadhayat.github.io/omarchy-cursor/)**, no install needed. Pick any stock Omarchy theme, or load your own `colors.toml` to see your theme's cursors.
+**[Try them in your browser](https://cursors.farzadhayat.dev/)**, no install needed. Pick any stock Omarchy theme, or load your own `colors.toml` to see your theme's cursors.
 
 ![All cursors](preview/sheet.png)
 
@@ -21,8 +21,8 @@ Omarchy already ships `python3` and `hyprcursor`. You also need `xorg-xcursorgen
 
 ```bash
 omarchy pkg add xorg-xcursorgen
-git clone https://github.com/FarzadHayat/omarchy-cursor.git ~/.local/share/omarchy-cursor
-~/.local/share/omarchy-cursor/install.sh
+git clone https://github.com/FarzadHayat/omarchy-pixel-cursors.git ~/.local/share/omarchy-pixel-cursors
+~/.local/share/omarchy-pixel-cursors/install.sh
 ```
 
 The installer:
@@ -37,7 +37,7 @@ The hook runs the copy you installed from, so keep the cloned folder where it is
 ## Uninstall
 
 ```bash
-~/.local/share/omarchy-cursor/uninstall.sh
+~/.local/share/omarchy-pixel-cursors/uninstall.sh
 ```
 
 This removes the theme and hook and puts your previous cursor settings back.
