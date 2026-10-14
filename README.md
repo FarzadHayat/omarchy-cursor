@@ -1,43 +1,63 @@
 # Omarchy Cursor
 
-Animated cursors for [Omarchy](https://omarchy.org) that take their colors from your theme. Switch themes and the cursor rebuilds itself to match.
+Animated 8-bit cursors for [Omarchy](https://omarchy.org) that take their colors from your theme. Switch themes and the cursor rebuilds itself to match.
 
-![Cursors in the Australia theme](preview/sheet.png)
+![All cursors](preview/sheet.png)
 
 <p align="center">
   <img src="preview/wait.gif" alt="Wait cursor" width="96"/>
   <img src="preview/progress.gif" alt="Progress cursor" width="96"/>
 </p>
 
-- Rounded vector artwork with a soft shadow, filled with your theme's accent color and outlined in whichever theme neutral gives the clearest edge.
-- Animated wait and progress spinners.
-- Ships as both Hyprcursor (sharp SVGs at any scale in Hyprland) and Xcursor (X11, GTK and other apps), with the usual aliases.
+- 8-bit pixel art with a crisp outline, a top left bevel and a hard drop shadow, filled with your theme's accent color.
+- Animated hourglass for wait and a spinning pixel ring for progress.
+- Rendered at whole number scales so pixels stay square, as both Hyprcursor and Xcursor, with the usual aliases.
 
 ## Install
 
-Needs `python3`, `librsvg`, `xorg-xcursorgen` and `hyprcursor` (all present on a stock Omarchy install).
+Omarchy already ships `python3` and `hyprcursor`. You also need `xorg-xcursorgen`:
 
 ```bash
-git clone https://github.com/FarzadHayat/omarchy-cursor.git
-cd omarchy-cursor
-./install.sh
+omarchy pkg add xorg-xcursorgen
+git clone https://github.com/FarzadHayat/omarchy-cursor.git ~/.local/share/omarchy-cursor
+~/.local/share/omarchy-cursor/install.sh
 ```
 
-This installs the theme to `~/.local/share/icons/Omarchy-Cursor`, makes it the active cursor, keeps it across restarts via `~/.config/hypr/cursor.lua`, and adds a `theme-set` hook so it follows your theme.
+The installer:
+
+- installs the theme to `~/.local/share/icons/Omarchy-Cursor` and makes it the active cursor,
+- keeps it across restarts with `~/.config/hypr/cursor.lua` (or `cursor.conf` on older Omarchy releases),
+- makes it the default for apps that pick their own cursor,
+- adds a `theme-set` hook so the cursor rebuilds whenever you switch themes.
+
+The hook runs the copy you installed from, so keep the cloned folder where it is. If you move it, run `install.sh` again from the new place.
+
+## Uninstall
+
+```bash
+~/.local/share/omarchy-cursor/uninstall.sh
+```
+
+This removes the theme and hook and puts your previous cursor settings back.
 
 ## Options
 
 ```bash
 ./build.py --theme catppuccin --apply   # build for a specific theme
-./build.py --style ink --apply          # dark body with an accent outline
 ./build.py --body "#f38ba8" --apply     # pick your own colors
 ./build.py --preview preview            # contact sheet and GIFs
 ```
 
-The theme hook always rebuilds in the default style from the active theme, so these options last until your next theme switch.
+These last until your next theme switch. To keep an option, pass it to the installer instead, e.g. `./install.sh --body "#f38ba8"`.
+
+## Testing
+
+Open `test.html` in a browser and hover the tiles to see each cursor on your real pointer, over dark, light or busy backgrounds. Run `./build.py --test-page` first to enable the theme picker, which previews any Omarchy theme's cursors without switching your theme.
 
 ## Layout
 
-- `artwork.py`: every cursor, drawn on a 32x32 grid
-- `build.py`: theme colors, SVG rendering, Xcursor and Hyprcursor packaging
+- `pixelart.py`: every cursor, drawn on a 17x17 pixel grid
+- `build.py`: theme colors, rendering, Xcursor and Hyprcursor packaging
+- `test.html`: cursor test area
 - `hooks/omarchy-cursor-sync`: Omarchy `theme-set` hook
+- `install.sh`, `uninstall.sh`

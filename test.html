@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Omarchy Cursor test area</title>
+<style>
+  :root {
+    --bg: #121c2b;
+    --tile: #1c2e46;
+    --fg: #e8d4b0;
+    --muted: #8a9bb3;
+    --focus: #e8b84a;
+    color-scheme: dark;
+  }
+  :root[data-bg="light"] {
+    --bg: #eceff4 !important; --tile: #ffffff !important; --fg: #2e3440 !important;
+    --muted: #5a6475; color-scheme: light;
+  }
+  :root[data-bg="busy"] { --tile: transparent !important; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 1.5rem;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.4 ui-monospace, "JetBrainsMono Nerd Font", monospace;
+  }
+  :root[data-bg="busy"] body {
+    background: repeating-conic-gradient(#d9783a 0 25%, #3d6fb8 0 50%) 0 0 / 48px 48px;
+  }
+  header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  h1 { margin: 0; font-size: 1.25rem; }
+  p { margin: 0.25rem 0 0; color: var(--muted); }
+  .controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+  label { color: var(--muted); }
+  select {
+    font: inherit;
+    min-height: 44px;
+    margin-left: 0.5rem;
+    padding: 0 0.75rem;
+    border-radius: 8px;
+    border: 2px solid var(--muted);
+    background: var(--tile);
+    color: var(--fg);
+  }
+  fieldset { border: 0; padding: 0; margin: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  legend { float: left; margin-right: 0.5rem; padding: 0.6rem 0; color: var(--muted); }
+  button {
+    font: inherit;
+    min-height: 44px;
+    padding: 0 1rem;
+    border-radius: 8px;
+    border: 2px solid var(--muted);
+    background: var(--tile);
+    color: var(--fg);
+  }
+  button[aria-pressed="true"] { border-color: var(--focus); }
+  h2 { font-size: 1rem; margin: 1.5rem 0 0.5rem; color: var(--muted); }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+  li {
+    min-height: 110px;
+    display: grid;
+    place-items: center;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background: var(--tile);
+    border: 2px solid transparent;
+    text-align: center;
+    word-break: break-word;
+  }
+  li:hover { border-color: var(--muted); }
+  li:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .note { margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Omarchy Cursor test area</h1>
+    <p>Hover a tile to see that cursor on your real pointer.</p>
+  </div>
+  <div class="controls">
+  <label>Theme
+    <select id="theme" aria-describedby="theme-help">
+      <option value="">Installed cursor</option>
+    </select>
+  </label>
+  <fieldset>
+    <legend>Background</legend>
+    <button type="button" data-bg="dark" aria-pressed="true">Dark</button>
+    <button type="button" data-bg="light" aria-pressed="false">Light</button>
+    <button type="button" data-bg="busy" aria-pressed="false">Busy</button>
+  </fieldset>
+  </div>
+</header>
+<p id="theme-help">Installed cursor uses your real theme. Picking a theme previews its colors here only; switch for real with <code>omarchy theme set</code>.</p>
+<main id="groups"></main>
+<p class="note" id="note">Pick a theme to also preview pencil, color-picker, X_cursor, dotbox, right_ptr and center_ptr, which browsers have no CSS name for.</p>
+<p class="sr-status" aria-live="polite" id="status" style="position:absolute;left:-9999px"></p>
+<script src="test/themes.js"></script>
+<script>
+  const themes = window.CURSOR_THEMES;
+  const extras = ["pencil", "color-picker", "X_cursor", "dotbox", "right_ptr", "center_ptr"];
+  // Chromium asks the system for all-scroll when a page wants move, so show move as an image.
+  const imageOnly = ["move"];
+  const groups = {
+    "General": ["default", "pointer", "text", "vertical-text", "help", "context-menu"],
+    "Status": ["wait", "progress", "not-allowed", "no-drop"],
+    "Drag and drop": ["grab", "grabbing", "move", "all-scroll", "copy", "alias"],
+    "Selection": ["crosshair", "cell", "zoom-in", "zoom-out"],
+    "Resize": ["ew-resize", "ns-resize", "nwse-resize", "nesw-resize", "col-resize", "row-resize",
+               "n-resize", "e-resize", "s-resize", "w-resize",
+               "nw-resize", "ne-resize", "se-resize", "sw-resize"],
+    "Theme preview only": extras,
+  };
+  const main = document.getElementById("groups");
+  const tiles = [];
+  for (const [title, names] of Object.entries(groups)) {
+    const section = document.createElement("section");
+    const h = document.createElement("h2");
+    h.textContent = title;
+    const ul = document.createElement("ul");
+    for (const name of names) {
+      const li = document.createElement("li");
+      li.textContent = name;
+      li.tabIndex = 0;
+      li.setAttribute("aria-label", `${name} cursor`);
+      ul.append(li);
+      tiles.push({ li, name, extra: extras.includes(name) });
+    }
+    section.append(h, ul);
+    if (title === "Theme preview only") section.id = "extras";
+    main.append(section);
+  }
+
+  // A cursor image drawn at 2x art scale, shown at 24 CSS pixels like the installed size.
+  function cursorFor(theme, name, frame) {
+    const cur = theme.cursors[name];
+    const src = cur.frames[frame % cur.frames.length];
+    const [x, y] = cur.hotspot.map(v => Math.round(v / 1.5));
+    const fallback = extras.includes(name) ? "default" : name;
+    return `image-set(url("${src}") 1.5x) ${x} ${y}, ${fallback}`;
+  }
+
+  let timer = null;
+  function setTheme(key) {
+    const theme = key && themes ? themes.themes[key] : null;
+    clearInterval(timer);
+    const root = document.documentElement.style;
+    for (const prop of ["--bg", "--tile", "--fg", "--focus"]) root.removeProperty(prop);
+    if (theme) {
+      root.setProperty("--bg", theme.background);
+      root.setProperty("--fg", theme.foreground);
+      root.setProperty("--focus", theme.accent);
+      root.setProperty("--tile", `color-mix(in srgb, ${theme.background}, ${theme.light ? "#000" : "#fff"} 8%)`);
+    }
+    document.getElementById("extras").hidden = !theme;
+    document.getElementById("note").hidden = !!theme;
+    for (const t of tiles) {
+      const active = themes && themes.themes[themes.active];
+      if (theme) t.li.style.cursor = cursorFor(theme, t.name, 0);
+      else if (imageOnly.includes(t.name) && active) t.li.style.cursor = cursorFor(active, t.name, 0);
+      else t.li.style.cursor = t.name;
+      t.li.onpointerenter = t.li.onpointerleave = null;
+      const cur = theme && theme.cursors[t.name];
+      if (cur && cur.frames.length > 1) {
+        let frame = 0;
+        t.li.onpointerenter = () => {
+          clearInterval(timer);
+          timer = setInterval(() => { t.li.style.cursor = cursorFor(theme, t.name, ++frame); }, cur.delay);
+        };
+        t.li.onpointerleave = () => clearInterval(timer);
+      }
+    }
+  }
+
+  const select = document.getElementById("theme");
+  if (themes) {
+    for (const key of Object.keys(themes.themes)) {
+      const option = new Option(key === themes.active ? `${key} (active)` : key, key);
+      select.append(option);
+    }
+  } else {
+    select.disabled = true;
+    document.getElementById("theme-help").textContent =
+      "Run ./build.py --test-page to enable theme previews.";
+  }
+  select.addEventListener("change", () => {
+    setTheme(select.value);
+    status.textContent = select.value ? `Previewing ${select.value}` : "Installed cursor";
+  });
+  const wanted = new URLSearchParams(location.search).get("theme") || "";
+  select.value = themes && themes.themes[wanted] ? wanted : "";
+  setTheme(select.value);
+
+  const status = document.getElementById("status");
+  for (const button of document.querySelectorAll("button[data-bg]")) {
+    button.addEventListener("click", () => {
+      document.documentElement.dataset.bg = button.dataset.bg;
+      for (const b of document.querySelectorAll("button[data-bg]")) {
+        b.setAttribute("aria-pressed", String(b === button));
+      }
+      status.textContent = `${button.textContent} background`;
+    });
+  }
+</script>
+</body>
+</html>
