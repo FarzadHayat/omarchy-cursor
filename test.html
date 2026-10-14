@@ -127,28 +127,11 @@
     background: linear-gradient(160deg, color-mix(in srgb, #fff 14%, transparent), transparent 40%);
   }
 
-  /* Waybar */
-  .bar {
-    position: sticky;
-    top: var(--gap);
-    z-index: 10;
-    margin: var(--gap);
-    padding: 0.35rem 0.5rem;
-    border-radius: 999px;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  .bar { justify-content: space-between; }
-  .bar .brand { display: flex; align-items: center; gap: 0.4rem; font-weight: 700; padding-left: 0.4rem; }
-  .bar .brand img { width: 27px; height: 27px; }
-  .bar .clock { color: var(--muted); padding-right: 0.6rem; white-space: nowrap; }
-
   /* Tiled windows */
   main {
     max-width: 1180px;
     margin: 0 auto;
-    padding: var(--gap);
+    padding: 2rem var(--gap) var(--gap);
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     gap: var(--gap);
@@ -291,7 +274,6 @@
 
   @media (max-width: 760px) {
     main { grid-template-columns: minmax(0, 1fr); }
-    .bar .clock { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
     body::before { animation: none; }
@@ -300,11 +282,6 @@
 </style>
 </head>
 <body>
-<div class="bar glass">
-  <span class="brand"><img class="px" id="brand" alt=""> <span>pixel cursors</span></span>
-  <span class="clock" id="clock" aria-hidden="true"></span>
-</div>
-
 <main>
   <section class="window glass" aria-labelledby="hero-title">
     <div class="titlebar"><h2 id="hero-title">~/omarchy-pixel-cursors</h2></div>
@@ -434,12 +411,6 @@
     document.getElementById("groups").append(section);
   });
 
-  const clock = document.getElementById("clock");
-  const tickClock = () => {
-    clock.textContent = new Date().toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" });
-  };
-  tickClock();
-  setInterval(tickClock, 10000);
 
   // Each theme's frames are drawn once and cached.
   const cache = new Map();
@@ -539,7 +510,6 @@
     for (const b of document.querySelectorAll("#themes button")) {
       b.setAttribute("aria-pressed", String(b.dataset.key === key));
     }
-    document.getElementById("brand").src = current.default.icon[0];
     document.getElementById("parade").replaceChildren(
       ...["default", "pointer", "grab", "text", "wait", "help"].map(name => {
         const img = document.createElement("img");
