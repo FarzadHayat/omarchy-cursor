@@ -2,6 +2,8 @@
 
 Animated 8-bit cursors for [Omarchy](https://omarchy.org) that take their colors from your theme. Switch themes and the cursor rebuilds itself to match.
 
+**[Try them in your browser](https://farzadhayat.github.io/omarchy-cursor/)**, no install needed.
+
 ![All cursors](preview/sheet.png)
 
 <p align="center">
@@ -54,10 +56,13 @@ These last until your next theme switch. To keep an option, pass it to the insta
 
 Open `test.html` in a browser and hover the tiles to see each cursor on your real pointer, over dark, light or busy backgrounds. Run `./build.py --test-page` first to enable the theme picker, which previews any Omarchy theme's cursors without switching your theme.
 
+The hosted version in `docs/` is built with `./build.py --site docs` from the stock Omarchy themes and served by GitHub Pages.
+
 ## Layout
 
 - `pixelart.py`: every cursor, drawn on a 17x17 pixel grid
 - `build.py`: theme colors, rendering, Xcursor and Hyprcursor packaging
 - `test.html`: cursor test area
+- `docs/`: hosted copy of the test area
 - `hooks/omarchy-cursor-sync`: Omarchy `theme-set` hook
 - `install.sh`, `uninstall.sh`

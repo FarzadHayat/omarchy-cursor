@@ -32,6 +32,7 @@
   header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
   h1 { margin: 0; font-size: 1.25rem; }
   p { margin: 0.25rem 0 0; color: var(--muted); }
+  a { color: var(--focus); }
   .controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
   label { color: var(--muted); }
   select {
@@ -183,10 +184,25 @@
   }
 
   const select = document.getElementById("theme");
+  const hosted = themes && themes.hosted;
+  if (hosted) {
+    // Visitors don't have the cursor installed, so only theme previews make sense.
+    select.querySelector('option[value=""]').remove();
+    document.title = "Omarchy Cursor";
+    document.querySelector("h1").textContent = "Omarchy Cursor";
+    document.querySelector("header p").textContent =
+      "Animated 8-bit cursors that match your Omarchy theme. Hover a tile to try one on your pointer.";
+    const help = document.getElementById("theme-help");
+    help.textContent = "Previewing in your browser, nothing to install. Like it? ";
+    const link = document.createElement("a");
+    link.href = "https://github.com/FarzadHayat/omarchy-cursor";
+    link.textContent = "Install it from GitHub";
+    help.append(link, ". Needs a mouse or trackpad.");
+  }
   if (themes) {
     for (const key of Object.keys(themes.themes)) {
-      const option = new Option(key === themes.active ? `${key} (active)` : key, key);
-      select.append(option);
+      const label = key === themes.active && !hosted ? `${key} (active)` : key;
+      select.append(new Option(label, key));
     }
   } else {
     select.disabled = true;
@@ -198,7 +214,7 @@
     status.textContent = select.value ? `Previewing ${select.value}` : "Installed cursor";
   });
   const wanted = new URLSearchParams(location.search).get("theme") || "";
-  select.value = themes && themes.themes[wanted] ? wanted : "";
+  select.value = themes && themes.themes[wanted] ? wanted : hosted ? themes.active : "";
   setTheme(select.value);
 
   const status = document.getElementById("status");

@@ -280,18 +280,25 @@ def preview(cursors, work, pal, colors, dest):
                  "-loop", "0", str(dest / f"{cur.name}.gif")])
 
 
-def test_page(dest):
-    """Every theme's cursors as data URIs, for the theme switcher in test.html."""
+def test_page(dest, hosted=False):
+    """Every theme's cursors as data URIs, for the theme switcher in test.html.
+
+    A hosted page only uses the stock Omarchy themes and opens on a theme,
+    since visitors do not have the cursor installed.
+    """
     themes = {}
-    for directory in reversed(THEME_DIRS):  # user themes override stock ones
+    for directory in reversed(THEME_DIRS[-1:] if hosted else THEME_DIRS):  # user themes override stock
         if directory.is_dir():
             for path in sorted(directory.iterdir()):
                 if (path / "colors.toml").is_file():
                     themes[path.name] = path
-    active = (HOME / ".local/state/omarchy/current/theme.name")
-    active = active.read_text().strip() if active.is_file() else None
+    if hosted:
+        active = "tokyo-night" if "tokyo-night" in themes else next(iter(sorted(themes)), None)
+    else:
+        active = HOME / ".local/state/omarchy/current/theme.name"
+        active = active.read_text().strip() if active.is_file() else None
     cursors = [(cur, [pixelart.finish(g) for g in cur.frames]) for cur in pixelart.all_cursors()]
-    data = {"active": active, "themes": {}}
+    data = {"active": active, "hosted": hosted, "themes": {}}
     for name, path in sorted(themes.items()):
         colors, _ = load_colors(str(path))
         pal = Palette(colors)
@@ -322,10 +329,17 @@ def main():
     parser.add_argument("--size", type=int, default=int(os.environ.get("XCURSOR_SIZE") or 24))
     parser.add_argument("--preview", type=Path, metavar="DIR", help="write preview sheets and GIFs")
     parser.add_argument("--test-page", action="store_true", help="render every theme for test.html")
+    parser.add_argument("--site", type=Path, metavar="DIR", help="write a hosted copy of the test page")
     args = parser.parse_args()
 
     if args.test_page:
         test_page(ROOT / "test" / "themes.js")
+        return
+    if args.site:
+        test_page(args.site / "themes.js", hosted=True)
+        page = (ROOT / "test.html").read_text().replace('src="test/themes.js"', 'src="themes.js"')
+        (args.site / "index.html").write_text(page)
+        print(f"Wrote site to {args.site}")
         return
 
     colors, source = load_colors(args.theme)
