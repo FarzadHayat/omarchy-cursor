@@ -72,23 +72,31 @@ function saturate(hex, amount) {
 }
 
 // Theme colors to the art's color keys, as [r, g, b, a].
-function palette(theme) {
+function palette(theme, style = "accent") {
   const c = { ...FALLBACK_COLORS, ...theme };
   let dark = c.darker_background || c.dark_background || c.background;
   let light = c.bright_foreground || c.light_foreground || c.foreground;
   if (c.mode === "light") [dark, light] = [c.foreground || dark, c.background || light];
   if (luminance(dark) > 0.02) dark = mix(dark, "#000000", 0.25);
 
-  const body = c.accent;
-  const rim = contrast(dark, body) >= contrast(light, body) ? dark : light;
+  // accent: accent body with whichever theme neutral gives the strongest edge.
+  // light and dark: neutral body, with the accent kept for the animations.
+  let body, rim;
+  if (style === "light") [body, rim] = [mix(light, "#ffffff", 0.5), dark];
+  else if (style === "dark") [body, rim] = [mix(dark, "#ffffff", 0.15), mix(light, "#ffffff", 0.5)];
+  else {
+    body = c.accent;
+    rim = contrast(dark, body) >= contrast(light, body) ? dark : light;
+  }
+  const sand = style === "accent" ? body : c.accent;
   let danger = c.red || "#e05561";
   if (contrast(danger, rim) < 2.4) {
     danger = saturate(mix(danger, luminance(rim) < 0.3 ? "#ffffff" : "#000000", 0.35), 1.2);
   }
   const roles = {
-    "#": body, s: body, X: rim,
+    "#": body, s: sand, X: rim,
     w: mix(body, "#ffffff", 0.35), d: mix(body, "#000000", 0.22),
-    t: mix(body, rim, 0.6), h: mix(body, "#ffffff", luminance(body) < 0.5 ? 0.45 : 0.7),
+    t: mix(body, rim, 0.6), h: mix(sand, "#ffffff", luminance(sand) < 0.5 ? 0.45 : 0.7),
     r: danger, R: mix(danger, "#ffffff", 0.22), D: mix(danger, "#000000", 0.12),
   };
   const out = {};

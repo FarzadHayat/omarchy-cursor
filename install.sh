@@ -1,7 +1,8 @@
 #!/bin/bash
-# Install Omarchy Cursor, make it the active cursor, and keep it in sync with
-# the Omarchy theme. Extra arguments go to build.py (e.g. --body "#f38ba8") and
-# are kept for every rebuild after a theme switch. Undo with ./uninstall.sh.
+# Install Omarchy Pixel Cursors, make it the active cursor, and keep it in sync
+# with the Omarchy theme. Options go to build.py and are kept for every rebuild:
+#   ./install.sh --style light --size 36
+# Undo with ./uninstall.sh.
 
 set -euo pipefail
 
@@ -20,7 +21,7 @@ if (( ${#missing[@]} )); then
   exit 1
 fi
 
-# Launcher used by the theme-set hook. It remembers the options given here.
+# Launcher used by the hooks. It remembers the options given here.
 mkdir -p "$(dirname "$bin")"
 saved=""
 (( $# )) && saved="$(printf ' %q' "$@")"
@@ -29,9 +30,22 @@ chmod +x "$bin"
 
 "$bin" --apply
 
-# Keep the cursor across restarts. Newer Omarchy configures Hyprland in Lua,
-# older releases in hyprland.conf.
-if [[ -f $hypr/hyprland.lua ]]; then
+# Keep the cursor across restarts. Omarchy reads session settings from
+# ~/.config/uwsm/env.d, which its config resets leave alone. Setups without
+# uwsm get the setting in their Hyprland config instead.
+if [[ -d $HOME/.config/uwsm ]]; then
+  mkdir -p "$HOME/.config/uwsm/env.d"
+  cat >"$HOME/.config/uwsm/env.d/50-omarchy-pixel-cursors" <<ENV
+# Written by $mark install.sh
+export XCURSOR_THEME=Omarchy-Cursor
+export HYPRCURSOR_THEME=Omarchy-Cursor
+ENV
+  # Older installs kept this in the Hyprland config; empty it but keep the file
+  # loadable in case hyprland.lua still requires it.
+  if grep -qs "Written by $mark" "$hypr/cursor.lua"; then
+    printf -- '-- Moved to ~/.config/uwsm/env.d/50-omarchy-pixel-cursors by %s\n' "$mark" >"$hypr/cursor.lua"
+  fi
+elif [[ -f $hypr/hyprland.lua ]]; then
   cat >"$hypr/cursor.lua" <<LUA
 -- Written by $mark install.sh
 hl.env("XCURSOR_THEME", "Omarchy-Cursor")
@@ -48,13 +62,16 @@ CONF
   grep -q 'source = ~/.config/hypr/cursor.conf' "$hypr/hyprland.conf" ||
     printf '\nsource = ~/.config/hypr/cursor.conf # %s\n' "$mark" >>"$hypr/hyprland.conf"
 else
-  echo "No Hyprland config found; the cursor will reset after a restart."
+  echo "No session or Hyprland config found; the cursor will reset after a restart."
 fi
 
-hook="$repo/hooks/omarchy-cursor-sync"
-if ! omarchy hook install theme-set "$hook" 2>/dev/null; then
-  mkdir -p "$HOME/.config/omarchy/hooks/theme-set.d"
-  cp "$hook" "$HOME/.config/omarchy/hooks/theme-set.d/"
-  chmod +x "$HOME/.config/omarchy/hooks/theme-set.d/omarchy-cursor-sync"
-fi
+# Hooks: rebuild on theme switch, re-apply size and style at login.
+for pair in theme-set:omarchy-cursor-sync post-boot:omarchy-cursor-boot; do
+  event="${pair%%:*}" hook="$repo/hooks/${pair#*:}"
+  if ! omarchy hook install "$event" "$hook" >/dev/null 2>&1; then
+    mkdir -p "$HOME/.config/omarchy/hooks/$event.d"
+    cp "$hook" "$HOME/.config/omarchy/hooks/$event.d/"
+    chmod +x "$HOME/.config/omarchy/hooks/$event.d/${pair#*:}"
+  fi
+done
 echo "Done. The cursor now follows your Omarchy theme."

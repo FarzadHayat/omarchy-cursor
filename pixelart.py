@@ -17,7 +17,7 @@ N = 17  # art grid; the image canvas is one pixel larger to fit the shadow
 CANVAS = N + 1
 BEVELED = {"#": ("w", "d"), "r": ("R", "D")}
 # Grid keys to Palette roles in build.py.
-KEYS = {"#": "body", "w": "hi", "d": "lo", "s": "body", "t": "track", "h": "head",
+KEYS = {"#": "body", "w": "hi", "d": "lo", "s": "sand", "t": "track", "h": "head",
         "r": "danger", "R": "danger_hi", "D": "danger_lo", "X": "rim"}
 SOLID = set("#rsthwdRDX")
 
@@ -110,20 +110,43 @@ def finish(grid):
     return shaded
 
 
-def png(grid, colors, scale):
-    """Encode a finished grid as an RGBA PNG, each art pixel scale x scale."""
-    size = CANVAS * scale
-    raw = bytearray()
-    for y in range(size):
-        raw.append(0)
-        for x in range(size):
-            raw += bytes(colors.get(grid[y // scale][x // scale], (0, 0, 0, 0)))
+def placement(hotspot, size):
+    """Art scale and offset for a square image of the given size.
+
+    The art is drawn at the largest whole number scale that fits, so pixels stay
+    square, and shifted so the hotspot lands where the shared hotspot fraction
+    says it is at every size. Returns (scale, x offset, y offset, hotspot x, y).
+    """
+    scale = max(1, size // CANVAS)
+    room = max(0, size - CANVAS * scale)
+    out = [scale]
+    for h in hotspot:
+        want = (h + 0.5) / CANVAS * size
+        offset = min(room, max(0, round(want - (h + 0.5) * scale)))
+        out.append(offset)
+    return (*out, out[1] + hotspot[0] * scale + scale // 2, out[2] + hotspot[1] * scale + scale // 2)
+
+
+def png(grid, colors, scale, size=None, offset=(0, 0)):
+    """Encode a finished grid as an RGBA PNG, each art pixel scale x scale,
+    placed at offset inside a size x size image."""
+    size = size or CANVAS * scale
+    ox, oy = offset
+    clear = bytes(4)
+    pixel = {key: bytes(color) for key, color in colors.items()}
+    blank = b"\0" + clear * size
+    raw = bytearray(blank * oy)
+    for row in grid:
+        art = b"".join(pixel.get(c, clear) * scale for c in row)
+        line = b"\0" + clear * ox + art + clear * (size - ox - len(row) * scale)
+        raw += line * scale
+    raw += blank * (size - oy - len(grid) * scale)
 
     def chunk(kind, data):
         return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
 
     return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", size, size, 8, 6, 0, 0, 0))
-            + chunk(b"IDAT", zlib.compress(bytes(raw), 9)) + chunk(b"IEND", b""))
+            + chunk(b"IDAT", zlib.compress(bytes(raw), 6)) + chunk(b"IEND", b""))
 
 
 class Cursor:

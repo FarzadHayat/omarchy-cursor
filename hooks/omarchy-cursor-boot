@@ -1,0 +1,13 @@
+#!/bin/bash
+# Omarchy post-boot hook from Omarchy Pixel Cursors: apply the cursor with the
+# saved size and style at login, in the current theme's colors.
+
+bin="$HOME/.local/bin/omarchy-cursor"
+[[ -x $bin ]] || exit 0
+
+log="${XDG_STATE_HOME:-$HOME/.local/state}/omarchy-cursor.log"
+mkdir -p "$(dirname "$log")"
+(
+  "$bin" --apply >"$log" 2>&1 ||
+    notify-send -u critical "Omarchy Pixel Cursors" "Couldn't apply the cursor at login. Details in $log"
+) &

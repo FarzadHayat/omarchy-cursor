@@ -317,6 +317,15 @@
           Find it in <code>~/.config/omarchy/themes/</code> or <code>~/.local/state/omarchy/current/theme/</code>.</p>
       </div>
       <div>
+        <p class="label" id="style-label">Style</p>
+        <div class="row" role="group" aria-labelledby="style-label">
+          <button type="button" data-style="accent" aria-pressed="true">Accent</button>
+          <button type="button" data-style="light" aria-pressed="false">Light</button>
+          <button type="button" data-style="dark" aria-pressed="false">Dark</button>
+        </div>
+        <p class="help" id="style-help">Install with <code>--style light</code> or <code>--style dark</code> for the neutral looks.</p>
+      </div>
+      <div>
         <p class="label" id="bg-label">Background</p>
         <div class="row" role="group" aria-labelledby="bg-label">
           <button type="button" data-bg="theme" aria-pressed="true">Theme</button>
@@ -421,9 +430,11 @@
 
   // Each theme's frames are drawn once and cached.
   const cache = new Map();
+  let style = "accent";
   function rendered(key, colors) {
+    key = `${style}:${key}`;
     if (!cache.has(key)) {
-      const pal = palette(colors);
+      const pal = palette(colors, style);
       const out = {};
       for (const [name, art] of Object.entries(data.art)) {
         out[name] = {
@@ -480,7 +491,9 @@
     document.documentElement.toggleAttribute("data-light", bg === "light" || (themeMode === "light" && bg !== "busy"));
   }
 
+  let shown = null;
   function show(key, colors, label) {
+    shown = [key, colors, label];
     installed = key === "installed";
     current = rendered(key, colors);
     const root = document.documentElement;
@@ -580,6 +593,18 @@
     document.documentElement.classList.remove("dragging");
     if (e.dataTransfer.files[0]) useFile(e.dataTransfer.files[0]);
   });
+
+  // Style
+  for (const button of document.querySelectorAll("button[data-style]")) {
+    button.addEventListener("click", () => {
+      style = button.dataset.style;
+      for (const b of document.querySelectorAll("button[data-style]")) {
+        b.setAttribute("aria-pressed", String(b === button));
+      }
+      if (shown) show(...shown);
+      say(`${button.textContent} style`);
+    });
+  }
 
   // Background
   for (const button of document.querySelectorAll("button[data-bg]")) {

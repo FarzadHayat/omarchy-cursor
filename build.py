@@ -98,7 +98,7 @@ def load_colors(theme):
 class Palette:
     """Turns theme colors into the handful of roles the artwork uses."""
 
-    def __init__(self, colors, overrides=None):
+    def __init__(self, colors, overrides=None, style="accent"):
         accent = colors["accent"]
         dark = colors.get("darker_background") or colors.get("dark_background") or colors["background"]
         light = colors.get("bright_foreground") or colors.get("light_foreground") or colors["foreground"]
@@ -106,11 +106,20 @@ class Palette:
             dark, light = (colors.get("foreground") or dark), (colors.get("background") or light)
         dark = mix(dark, "#000000", 0.25) if luminance(dark) > 0.02 else dark
 
-        # Accent body with whichever theme neutral gives the strongest edge.
+        # accent: accent body with whichever theme neutral gives the strongest edge.
+        # light and dark: neutral body, with the accent kept for the animations.
+        if style == "light":
+            body, rim = mix(light, "#ffffff", 0.5), dark
+        elif style == "dark":
+            body, rim = mix(dark, "#ffffff", 0.15), mix(light, "#ffffff", 0.5)
+        else:
+            body = accent
+            rim = max((dark, light), key=lambda c: contrast(c, body))
         overrides = overrides or {}
-        self.body = overrides.get("body") or accent
-        self.rim = overrides.get("rim") or max((dark, light), key=lambda c: contrast(c, self.body))
-        self.head = mix(self.body, "#ffffff", 0.45 if luminance(self.body) < 0.5 else 0.7)
+        self.body = overrides.get("body") or body
+        self.rim = overrides.get("rim") or rim
+        self.sand = self.body if style == "accent" else accent
+        self.head = mix(self.sand, "#ffffff", 0.45 if luminance(self.sand) < 0.5 else 0.7)
         self.hi = mix(self.body, "#ffffff", 0.35)
         self.lo = mix(self.body, "#000000", 0.22)
         self.track = mix(self.body, self.rim, 0.6)
@@ -143,10 +152,32 @@ def png_colors(pal):
     return colors
 
 
-def render(cursors, pal, work, hypr_dir):
+def monitor_scales():
+    """Scales of the connected monitors, so their exact cursor sizes get drawn."""
+    if not shutil.which("hyprctl"):
+        return set()
+    try:
+        out = subprocess.run(["hyprctl", "monitors", "-j"], capture_output=True, text=True, timeout=5).stdout
+        return {float(m["scale"]) for m in json.loads(out)}
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError):
+        return set()
+
+
+def hypr_sizes(size):
+    """Pixel sizes Hyprland may ask for: cursor size times monitor scale.
+
+    Hyprland resamples any size it isn't given, which smears pixel art, so the
+    likely ones are all drawn exactly.
+    """
+    scales = {1, 1.25, 1.5, 1.75, 2, 2.5, 3} | monitor_scales()
+    return sorted({round(base * scale) for base in {24, 32, 48, size} for scale in scales})
+
+
+def render(cursors, pal, work, hypr_dir, size):
     """Pixel art PNGs at whole number scales so every art pixel stays square."""
     colors = png_colors(pal)
-    scales = {s: max(1, round(s / pixelart.CANVAS)) for s in SIZES}
+    hypr = hypr_sizes(size)
+    xcur = sorted(set(SIZES) | {size})
     xlines = {}
     for cur in cursors:
         sdir = hypr_dir / cur.name
@@ -166,20 +197,22 @@ def render(cursors, pal, work, hypr_dir):
         lines = []
         for i, grid in enumerate(cur.frames):
             finished = pixelart.finish(grid)
-            for k in sorted(set(scales.values())):
-                (sdir / f"{cur.name}-{k}x-{i:02d}.png").write_bytes(pixelart.png(finished, colors, k))
-                meta.append(f"define_size = {pixelart.CANVAS * k}, {cur.name}-{k}x-{i:02d}.png{delay}")
-            for s, k in scales.items():
-                png = pdir / f"{s}-{i:02d}.png"
-                shutil.copy(sdir / f"{cur.name}-{k}x-{i:02d}.png", png)
-                lines.append(f"{s} {hx * k + k // 2} {hy * k + k // 2} {png}"
-                             + (f" {cur.delay}" if cur.delay else ""))
+            for s in sorted(set(hypr) | set(xcur)):
+                k, ox, oy, x, y = pixelart.placement(cur.hotspot, s)
+                image = pixelart.png(finished, colors, k, s, (ox, oy))
+                if s in hypr:
+                    (sdir / f"{cur.name}-{s}-{i:02d}.png").write_bytes(image)
+                    meta.append(f"define_size = {s}, {cur.name}-{s}-{i:02d}.png{delay}")
+                if s in xcur:
+                    png = pdir / f"{s}-{i:02d}.png"
+                    png.write_bytes(image)
+                    lines.append(f"{s} {x} {y} {png}" + (f" {cur.delay}" if cur.delay else ""))
         (sdir / "meta.hl").write_text("\n".join(meta) + "\n")
         xlines[cur.name] = lines
     return xlines
 
 
-def build(pal, out):
+def build(pal, out, size=24):
     """Write a complete theme into out (which must not exist yet)."""
     need("xcursorgen", "hyprcursor-util")
     cursors = list(pixelart.all_cursors())
@@ -187,7 +220,7 @@ def build(pal, out):
     try:
         hypr_src = work / "hypr"
         (hypr_src / "hyprcursors").mkdir(parents=True)
-        xlines = render(cursors, pal, work, hypr_src / "hyprcursors")
+        xlines = render(cursors, pal, work, hypr_src / "hyprcursors", size)
 
         out.mkdir(parents=True)
         xdir = out / "cursors"
@@ -317,6 +350,8 @@ def test_page(dest, hosted=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--theme", help="Omarchy theme name or directory (default: active theme)")
+    parser.add_argument("--style", choices=["accent", "light", "dark"], default="accent",
+                        help="accent: theme accent body (default); light or dark: neutral body")
     parser.add_argument("--body", help="override body color (#hex)")
     parser.add_argument("--rim", help="override rim color (#hex)")
     parser.add_argument("--out", type=Path, default=ROOT / "build" / THEME_NAME, help="build output")
@@ -343,11 +378,11 @@ def main():
         return
 
     colors, source = load_colors(args.theme)
-    pal = Palette(colors, {"body": args.body, "rim": args.rim})
+    pal = Palette(colors, {"body": args.body, "rim": args.rim}, args.style)
     print(f"Colors from {source or 'built in fallback'}: body {pal.body}, rim {pal.rim}")
 
     staged = Path(tempfile.mkdtemp(prefix="omarchy-cursor-out-")) / THEME_NAME
-    cursors, work = build(pal, staged)
+    cursors, work = build(pal, staged, args.size)
     try:
         if args.preview:
             preview(cursors, work, pal, colors, args.preview)

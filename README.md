@@ -2,18 +2,17 @@
 
 Animated 8-bit cursors for [Omarchy](https://omarchy.org) that take their colors from your theme. Switch themes and the cursor rebuilds itself to match.
 
+<p align="center"><img src="preview/demo.gif" alt="The cursors changing color as the Omarchy theme switches" width="560"></p>
+
 **[Try them in your browser](https://cursors.farzadhayat.dev/)**, no install needed. Pick any stock Omarchy theme, or load your own `colors.toml` to see your theme's cursors.
 
 ![All cursors](preview/sheet.png)
 
-<p align="center">
-  <img src="preview/wait.gif" alt="Wait cursor" width="96"/>
-  <img src="preview/progress.gif" alt="Progress cursor" width="96"/>
-</p>
-
-- 8-bit pixel art with a crisp outline, a top left bevel and a hard drop shadow, filled with your theme's accent color.
+- 8-bit pixel art with a crisp outline, a top left bevel and a hard drop shadow.
+- Three styles: your theme's accent color, or a light or dark body with accent animations.
 - Animated hourglass for wait and a spinning pixel ring for progress.
-- Rendered at whole number scales so pixels stay square, as both Hyprcursor and Xcursor, with the usual aliases.
+- Drawn at every size Hyprland asks for, so pixels stay square at any display scale.
+- Ships as both Hyprcursor and Xcursor, with every standard cursor name.
 
 ## Install
 
@@ -32,11 +31,23 @@ git clone https://github.com/FarzadHayat/omarchy-pixel-cursors.git ~/.local/shar
 The installer:
 
 - installs the theme to `~/.local/share/icons/Omarchy-Cursor` and makes it the active cursor,
-- keeps it across restarts with `~/.config/hypr/cursor.lua` (or `cursor.conf` on older Omarchy releases),
+- keeps it across restarts and Omarchy config resets with `~/.config/uwsm/env.d/50-omarchy-pixel-cursors`,
 - makes it the default for apps that pick their own cursor,
-- adds a `theme-set` hook so the cursor rebuilds whenever you switch themes.
+- adds hooks that rebuild the cursor when you switch themes and re-apply it at login.
 
-The hook runs the copy you installed from, so keep the cloned folder where it is. If you move it, run `install.sh` again from the new place.
+The hooks run the copy you installed from, so keep the folder where it is. If you move it, run `install.sh` again from the new place. If a rebuild fails you get a notification, and the details are in `~/.local/state/omarchy-cursor.log`.
+
+## Style and size
+
+Pass options to the installer and they stick, including through theme switches:
+
+```bash
+curl -fsSL https://cursors.farzadhayat.dev/install | bash -s -- --style light --size 36
+```
+
+- `--style accent` (default), `--style light` or `--style dark`.
+- `--size` sets the cursor size, 24 by default. Pixel art only stays sharp at whole multiples of its 18 pixel grid, so at 100% display scaling the default cursor is fairly small. Try `--size 36` for a bigger one. At 150% and 200% scaling the default size already draws at 2x.
+- `--body "#hex"` and `--rim "#hex"` pick your own colors.
 
 ## Uninstall
 
@@ -44,29 +55,26 @@ The hook runs the copy you installed from, so keep the cloned folder where it is
 ~/.local/share/omarchy-pixel-cursors/uninstall.sh
 ```
 
-This removes the theme and hook and puts your previous cursor settings back.
-
-## Options
-
-```bash
-./build.py --theme catppuccin --apply   # build for a specific theme
-./build.py --body "#f38ba8" --apply     # pick your own colors
-./build.py --preview preview            # contact sheet and GIFs
-```
-
-These last until your next theme switch. To keep an option, pass it to the installer instead, e.g. `./install.sh --body "#f38ba8"`.
+This removes the theme, hooks and settings and puts your previous cursor settings back.
 
 ## Testing
 
-Open `test.html` in a browser and hover the tiles to see each cursor on your real pointer, over dark, light or busy backgrounds. Run `./build.py --test-page` first to enable the theme picker, which previews any Omarchy theme's cursors without switching your theme.
+**[cursors.farzadhayat.dev](https://cursors.farzadhayat.dev/)** shows every cursor on your real pointer. Locally, run `./build.py --test-page` and open `test.html`: it also offers "Installed cursor", which shows the cursor actually installed on your system.
 
-The hosted version in `docs/` is built with `./build.py --site docs` from the stock Omarchy themes and served by GitHub Pages.
-
-## Layout
+## Development
 
 - `pixelart.py`: every cursor, drawn on a 17x17 pixel grid
 - `build.py`: theme colors, rendering, Xcursor and Hyprcursor packaging
-- `test.html`: cursor test area
-- `docs/`: hosted copy of the test area
-- `hooks/omarchy-cursor-sync`: Omarchy `theme-set` hook
+- `cursors.js`, `test.html`: the test page, which draws cursors in the browser
+- `docs/`: the hosted site, rebuilt with `./build.py --site docs`
+- `hooks/`: Omarchy `theme-set` and `post-boot` hooks
 - `install.sh`, `uninstall.sh`, `web-install.sh` (served as the one line installer)
+- `tests/check.py`: checks hotspots, a full build, and that the site's colors match; CI runs it on every push
+
+```bash
+./build.py --theme catppuccin --out /tmp/theme    # build without installing
+./build.py --preview preview                      # contact sheet and GIFs
+python3 tests/check.py
+```
+
+See [CHANGELOG.md](CHANGELOG.md) for releases.

@@ -10,12 +10,17 @@ theme="Omarchy-Cursor"
 
 rm -f "$HOME/.local/bin/omarchy-cursor"
 
-hook="$HOME/.config/omarchy/hooks/theme-set.d/omarchy-cursor-sync"
-grep -qs "Omarchy Cursor" "$hook" && rm -f "$hook"
+for hook in theme-set.d/omarchy-cursor-sync post-boot.d/omarchy-cursor-boot; do
+  hook="$HOME/.config/omarchy/hooks/$hook"
+  grep -qs "omarchy-cursor\|Omarchy Cursor" "$hook" && rm -f "$hook"
+done
+
+env="$HOME/.config/uwsm/env.d/50-omarchy-pixel-cursors"
+grep -qs "Written by $mark" "$env" && rm -f "$env"
 
 # Hyprland config. A require or source line we added is removed with its file;
 # one that was already there keeps a harmless empty file so it still loads.
-if grep -qs "Written by $mark" "$hypr/cursor.lua"; then
+if grep -qs "Written by $mark\|by $mark" "$hypr/cursor.lua"; then
   if grep -q "require(\"hypr.cursor\") -- $mark" "$hypr/hyprland.lua"; then
     sed -i "/require(\"hypr.cursor\") -- $mark/d" "$hypr/hyprland.lua"
     rm -f "$hypr/cursor.lua"

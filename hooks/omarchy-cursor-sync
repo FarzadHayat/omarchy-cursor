@@ -1,9 +1,13 @@
 #!/bin/bash
-# Omarchy theme-set hook: rebuild Omarchy Cursor in the new theme's colors.
-# Runs in the background so theme switching stays instant.
+# Omarchy theme-set hook from Omarchy Pixel Cursors: rebuild the cursor in the
+# new theme's colors. Runs in the background so theme switching stays instant.
 
-command -v omarchy-cursor >/dev/null || exit 0
+bin="$HOME/.local/bin/omarchy-cursor"
+[[ -x $bin ]] || exit 0
 
 log="${XDG_STATE_HOME:-$HOME/.local/state}/omarchy-cursor.log"
 mkdir -p "$(dirname "$log")"
-omarchy-cursor --apply >"$log" 2>&1 &
+(
+  "$bin" --apply >"$log" 2>&1 ||
+    notify-send -u critical "Omarchy Pixel Cursors" "Couldn't rebuild the cursor for this theme. Details in $log"
+) &
