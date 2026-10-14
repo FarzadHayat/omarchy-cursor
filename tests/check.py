@@ -2,6 +2,7 @@
 """Checks run by CI and before releases: python3 tests/check.py"""
 
 import json
+import math
 import shutil
 import subprocess
 import sys
@@ -30,19 +31,22 @@ def check(ok, message):
 
 
 def hotspots():
-    """Every click point sits on a drawn pixel, and stays put at every size."""
+    """Every click point touches the drawing, and Hyprland clicks near it at every size."""
     for cur in pixelart.all_cursors():
         x, y = cur.hotspot
         for i, grid in enumerate(cur.frames):
-            pixel = pixelart.finish(grid)[y][x]
-            check(pixel not in (".", "shadow"), f"{cur.name} frame {i}: hotspot ({x}, {y}) is on an empty pixel")
+            finished = pixelart.finish(grid)
+            around = [finished[py][px] for py in {int(y) - 1, int(y)} for px in {int(x) - 1, int(x)}
+                      if 0 <= px < len(finished) and 0 <= py < len(finished)]
+            check(any(p not in (".", "shadow") for p in around),
+                  f"{cur.name} frame {i}: hotspot ({x}, {y}) is not on the drawing")
         for size in build.hypr_sizes(24) + build.SIZES:
             scale, ox, oy, hx, hy = pixelart.placement(cur.hotspot, size)
             check(ox + pixelart.CANVAS * scale <= size and oy + pixelart.CANVAS * scale <= size,
                   f"{cur.name} at {size}px: art does not fit")
-            for got, h in ((hx + 0.5, x), (hy + 0.5, y)):
-                want = (h + 0.5) / pixelart.CANVAS * size
-                check(abs(got - want) <= 1, f"{cur.name} at {size}px: hotspot {got} is far from {want:.2f}")
+            for click, offset, point in ((hx, ox, x), (hy, oy, y)):
+                target = offset + pixelart.hyprland_round(point * scale)  # the screen pixel meant to click
+                check(click == target, f"{cur.name} at {size}px: clicks pixel {click}, hotspot pixel is {target}")
 
 
 def full_build():

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+
+- Clicks land exactly where the cursor points. Arrow tips click their visible point, and centered cursors like the crosshair and I-beam no longer lean half a pixel down and right at 1.5x and 2x scaling.
+- The click test on the test page measures in screen pixels and no longer leans half a pixel itself.
+
 ## 1.1.0
 
 - Style > Cursor in the Omarchy menu switches style and size, with a ✓ on the current choice. Choices are saved in `~/.config/omarchy-pixel-cursors/config.json`.

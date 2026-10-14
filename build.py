@@ -189,8 +189,8 @@ def render(cursors, pal, work, hypr_dir, size):
         hx, hy = cur.hotspot
         meta = [
             "resize_algorithm = nearest",
-            f"hotspot_x = {(hx + 0.5) / pixelart.CANVAS:.4f}",
-            f"hotspot_y = {(hy + 0.5) / pixelart.CANVAS:.4f}",
+            f"hotspot_x = {hx / pixelart.CANVAS:.6f}",
+            f"hotspot_y = {hy / pixelart.CANVAS:.6f}",
             "nominal_size = 1.0",
         ]
         if cur.aliases:

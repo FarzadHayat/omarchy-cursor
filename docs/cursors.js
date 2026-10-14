@@ -134,11 +134,12 @@ function renderFrame(rows, colors, scale) {
 }
 
 // Mirrors placement() in pixelart.py: the largest whole number scale that fits
-// a size x size image, shifted so the hotspot sits at the same fraction at every size.
+// a size x size image, shifted so the hotspot sits at the same fraction at every
+// size. Hotspots are points on the art grid, rounded half up like Hyprland.
 function placement(hotspot, size, canvas = 18) {
   const scale = Math.max(1, Math.floor(size / canvas));
   const room = Math.max(0, size - canvas * scale);
-  const [ox, oy] = hotspot.map(h => Math.min(room, Math.max(0, roundHalfEven((h + 0.5) / canvas * size - (h + 0.5) * scale))));
+  const [ox, oy] = hotspot.map(p => Math.min(room, Math.max(0, Math.floor(p / canvas * size + 0.5) - Math.floor(p * scale + 0.5))));
   return { scale, ox, oy };
 }
 

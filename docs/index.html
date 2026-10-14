@@ -496,7 +496,7 @@
 
   // Shown at 24 CSS pixels; the browser picks the image drawn for the screen's scale.
   function cssCursor(cur, frame, fallback) {
-    const [x, y] = cur.hotspot.map(v => Math.round((v + 0.5) / 18 * 24));
+    const [x, y] = cur.hotspot.map(v => Math.floor(v / 18 * 24 + 0.5));
     const [one, mid, two] = cur.cursor[frame % cur.cursor.length];
     return `image-set(url("${one}") 1x, url("${mid}") 1.5x, url("${two}") 2x) ${x} ${y}, ${fallback}`;
   }
@@ -683,13 +683,17 @@
     area.append(hit);
     let best = Infinity, dx = 0, dy = 0;
     for (const t of area.querySelectorAll(".target")) {
-      const tx = parseFloat(t.style.left), ty = parseFloat(t.style.top);
+      // The crosshair lines are one pixel wide, so their middle is half a pixel in.
+      const tx = parseFloat(t.style.left) + 0.5, ty = parseFloat(t.style.top) + 0.5;
       const d = Math.hypot(x - tx, y - ty);
-      if (d < best) [best, dx, dy] = [d, Math.round(x - tx), Math.round(y - ty)];
+      if (d < best) [best, dx, dy] = [d, x - tx, y - ty];
     }
-    clickResult.textContent = best < 40
-      ? `${clickCursor.value}: ${dx === 0 && dy === 0 ? "dead center" : `off by ${dx} across, ${dy} down`} (CSS pixels)`
-      : `${clickCursor.value}: no crosshair nearby`;
+    // Report in screen pixels; anything within one is as close as the screen allows.
+    const [sx, sy] = [dx, dy].map(v => v * devicePixelRatio);
+    const fmt = v => `${Math.abs(v).toFixed(1)}`;
+    clickResult.textContent = best >= 40 ? `${clickCursor.value}: no crosshair nearby`
+      : Math.abs(sx) <= 1 && Math.abs(sy) <= 1 ? `${clickCursor.value}: on target (within a screen pixel)`
+      : `${clickCursor.value}: ${fmt(sx)} screen px ${sx < 0 ? "left" : "right"}, ${fmt(sy)} ${sy < 0 ? "up" : "down"}`;
   });
   clickCursor.addEventListener("change", areaCursor);
   document.getElementById("click-reset").addEventListener("click", placeTargets);

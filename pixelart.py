@@ -136,21 +136,29 @@ def finish(grid):
     return shaded
 
 
+def hyprland_round(value):
+    """Hyprland rounds hotspots half up, unlike Python's round()."""
+    return math.floor(value + 0.5)
+
+
 def placement(hotspot, size):
     """Art scale and offset for a square image of the given size.
 
     The art is drawn at the largest whole number scale that fits, so pixels stay
     square, and shifted so the hotspot lands where the shared hotspot fraction
-    says it is at every size. Returns (scale, x offset, y offset, hotspot x, y).
+    says it is at every size. Returns (scale, x offset, y offset, hotspot x, y),
+    the hotspot being the pixel Hyprland will click with.
     """
     scale = max(1, size // CANVAS)
     room = max(0, size - CANVAS * scale)
-    out = [scale]
-    for h in hotspot:
-        want = (h + 0.5) / CANVAS * size
-        offset = min(room, max(0, round(want - (h + 0.5) * scale)))
-        out.append(offset)
-    return (*out, out[1] + hotspot[0] * scale + scale // 2, out[2] + hotspot[1] * scale + scale // 2)
+    offsets, points = [], []
+    for p in hotspot:
+        click = hyprland_round(p / CANVAS * size)  # the pixel Hyprland clicks with
+        # Shift the art so the pixel under the hotspot is that one. Sizes with no
+        # spare room can't shift; the 0.2 center offsets keep those on target.
+        offsets.append(min(room, max(0, click - hyprland_round(p * scale))))
+        points.append(click)
+    return (scale, *offsets, *points)
 
 
 def png(grid, colors, scale, size=None, offset=(0, 0)):
@@ -175,10 +183,20 @@ def png(grid, colors, scale, size=None, offset=(0, 0)):
             + chunk(b"IDAT", zlib.compress(bytes(raw), 6)) + chunk(b"IEND", b""))
 
 
+# Hotspots are points on the art grid, not pixels: (1, 1) is the corner where
+# pixel (1, 1) starts. Tips sit on the exact corner of the drawing's point.
+# Centers sit 0.2 into their pixel rather than 0.5, so when a pixel is drawn
+# two screen pixels wide the click lands on the top left of the pair, and on
+# the middle one when it is drawn three wide. Tips pointing right or down sit
+# 0.4 into their last pixel, so they click the drawing rather than the outline.
+TIP = (1, 1)
+MID = (8.2, 8.2)
+
+
 class Cursor:
     def __init__(self, name, hotspot, frames, aliases=(), delay=0):
         self.name = name
-        self.hotspot = hotspot  # art pixel
+        self.hotspot = hotspot
         self.frames = frames  # list of Grid
         self.aliases = list(aliases)
         # One delay for every frame, or a list with one per frame.
@@ -414,41 +432,41 @@ def center_arrow():
 
 
 def all_cursors(frames=16, delay=70):
-    yield Cursor("default", (1, 1), [ARROW],
+    yield Cursor("default", TIP, [ARROW],
                  ["left_ptr", "arrow", "top_left_arrow", "wayland-cursor", "x-cursor"])
-    yield Cursor("right_ptr", (15, 1), [ARROW.flip()], ["draft_large", "draft_small", "right-arrow"])
-    yield Cursor("center_ptr", (8, 1), [center_arrow()])
-    yield Cursor("pointer", (5, 1), [POINTER],
+    yield Cursor("right_ptr", (15.4, 1), [ARROW.flip()], ["draft_large", "draft_small", "right-arrow"])
+    yield Cursor("center_ptr", (8.2, 1), [center_arrow()])
+    yield Cursor("pointer", (6, 1), [POINTER],
                  ["hand2", "hand", "pointing_hand", "9d800788f1b08800ae810202380a0822",
                   "e29285e634086352946a0e7090d73106"])
-    yield Cursor("grab", (8, 8), [GRAB], ["openhand", "hand1", "5aca4d189052212118709018842178c0"])
-    yield Cursor("grabbing", (8, 8), [GRABBING],
+    yield Cursor("grab", MID, [GRAB], ["openhand", "hand1", "5aca4d189052212118709018842178c0"])
+    yield Cursor("grabbing", MID, [GRABBING],
                  ["closedhand", "dnd-move", "dnd-none", "fcf21c00b30f7e3f83fe0dfd12e71cff"])
-    yield Cursor("text", (8, 8), [IBEAM], ["xterm", "ibeam"])
-    yield Cursor("vertical-text", (8, 8), [IBEAM.transpose()], ["048008013003cff3c00c801001200000"])
+    yield Cursor("text", MID, [IBEAM], ["xterm", "ibeam"])
+    yield Cursor("vertical-text", MID, [IBEAM.transpose()], ["048008013003cff3c00c801001200000"])
 
     cross = Grid().where(lambda x, y: (x == 8 and (1 <= y <= 5 or 11 <= y <= 15))
                          or (y == 8 and (1 <= x <= 5 or 11 <= x <= 15)) or (x, y) == (8, 8), "#")
-    yield Cursor("crosshair", (8, 8), [cross], ["cross", "tcross", "cross_reverse", "diamond_cross"])
+    yield Cursor("crosshair", MID, [cross], ["cross", "tcross", "cross_reverse", "diamond_cross"])
     plus = Grid().where(lambda x, y: (7 <= x <= 9 and 3 <= y <= 13) or (7 <= y <= 9 and 3 <= x <= 13), "#")
-    yield Cursor("cell", (8, 8), [plus], ["plus"])
+    yield Cursor("cell", MID, [plus], ["plus"])
     target = disk(8, 8, 4.5, 5.6).over(disk(8, 8, 0, 1.2))
-    yield Cursor("dotbox", (8, 8), [target], ["target", "dot_box_mask", "draped_box", "icon"])
+    yield Cursor("dotbox", MID, [target], ["target", "dot_box_mask", "draped_box", "icon"])
     x_mark = Grid().where(lambda x, y: 3 <= x <= 13 and 3 <= y <= 13
                           and (abs(x - y) <= 1 or abs(x + y - 16) <= 1), "#")
-    yield Cursor("X_cursor", (8, 8), [x_mark], ["pirate", "kill"])
+    yield Cursor("X_cursor", MID, [x_mark], ["pirate", "kill"])
 
     ew = double_arrow()
-    yield Cursor("ew-resize", (8, 8), [ew],
+    yield Cursor("ew-resize", MID, [ew],
                  ["sb_h_double_arrow", "h_double_arrow", "size_hor", "left_right",
                   "14fef782d02440884392942c11205230", "028006030e0e7ebffc7f7070c0600140"])
-    yield Cursor("ns-resize", (8, 8), [ew.transpose()],
+    yield Cursor("ns-resize", MID, [ew.transpose()],
                  ["sb_v_double_arrow", "v_double_arrow", "size_ver", "up_down",
                   "2870a09082c103050810ffdffffe0204", "00008160000006810000408080010102"])
     diag = diagonal_arrow()
-    yield Cursor("nwse-resize", (8, 8), [diag],
+    yield Cursor("nwse-resize", MID, [diag],
                  ["bd_double_arrow", "size_fdiag", "c7088f0f3e6c8088236ef8e1e3e70000"])
-    yield Cursor("nesw-resize", (8, 8), [diag.flip()],
+    yield Cursor("nesw-resize", MID, [diag.flip()],
                  ["fd_double_arrow", "size_bdiag", "fcf1c3c7cd4491d801f1e1c78f100000"])
 
     edge, corner = edge_arrow(), corner_arrow()
@@ -461,7 +479,7 @@ def all_cursors(frames=16, delay=70):
         g = edge
         for _ in range(turns):
             g = g.rot90()
-        yield Cursor(name, (8, 8), [g], aliases)
+        yield Cursor(name, MID, [g], aliases)
     for name, turns, aliases in [
         ("nw-resize", 0, ["top_left_corner", "ul_angle"]),
         ("ne-resize", 1, ["top_right_corner", "ur_angle"]),
@@ -471,16 +489,16 @@ def all_cursors(frames=16, delay=70):
         g = corner
         for _ in range(turns):
             g = g.rot90()
-        yield Cursor(name, (8, 8), [g], aliases)
+        yield Cursor(name, MID, [g], aliases)
 
     split = split_arrow()
-    yield Cursor("col-resize", (8, 8), [split], ["split_h"])
-    yield Cursor("row-resize", (8, 8), [split.transpose()], ["split_v"])
+    yield Cursor("col-resize", MID, [split], ["split_h"])
+    yield Cursor("row-resize", MID, [split.transpose()], ["split_v"])
     move = Grid().where(lambda x, y: (x == 8 and 3 <= y <= 13) or (y == 8 and 3 <= x <= 13), "#")
     head = up_arrow_head(Grid(), 8, 1)
     for g in (head, head.rot90(), head.rot90().rot90(), head.rot90().rot90().rot90()):
         move.over(g)
-    yield Cursor("move", (8, 8), [move],
+    yield Cursor("move", MID, [move],
                  ["fleur", "size_all", "all-resize", "pointer-move", "4498f0e0c1937ffe01fd06f973665830",
                   "9081237383d90e509aa00f00170e968f"])
 
@@ -488,7 +506,7 @@ def all_cursors(frames=16, delay=70):
     head = up_arrow_head(Grid(), 8, 1)
     for g in (head, head.rot90(), head.rot90().rot90(), head.rot90().rot90().rot90()):
         scroll.over(g)
-    yield Cursor("all-scroll", (8, 8), [scroll], ["scroll"])
+    yield Cursor("all-scroll", MID, [scroll], ["scroll"])
 
     sand = [hourglass(i / (frames - 1)) for i in range(frames)]
     # Drain, rest, then flip a half turn in small steps. The half turn lands on
@@ -497,29 +515,29 @@ def all_cursors(frames=16, delay=70):
     turn = [sand[-1].rotate(a, 1 - 0.22 * math.sin(math.radians(a))) for a in range(20, 180, 20)]
     wait = sand + [sand[-1]] + turn
     delays = [delay * 2] * len(sand) + [delay * 4] + [delay // 2 + 5] * len(turn)
-    yield Cursor("wait", (8, 8), wait, ["watch", "clock"], delays)
+    yield Cursor("wait", MID, wait, ["watch", "clock"], delays)
     progress = [with_badge(mini_spinner(i)) for i in range(len(RING))]
-    yield Cursor("progress", (1, 1), progress,
+    yield Cursor("progress", TIP, progress,
                  ["left_ptr_watch", "half-busy", "00000000000000020006000e7e9ffc3f",
                   "08e8e1c95fe2fc01f976f1e063a24ccd", "3ecb610c1bf2410f44200f48c40d3599"], delay)
 
-    yield Cursor("help", (1, 1), [with_badge(badge(glyph([".XXX.", "X...X", "..XX.", ".....", "..X.."])))],
+    yield Cursor("help", TIP, [with_badge(badge(glyph([".XXX.", "X...X", "..XX.", ".....", "..X.."])))],
                  ["question_arrow", "whats_this", "left_ptr_help", "dnd-ask",
                   "d9ce0ab605698f320427677b458ad60b", "5c6cd98b3f3ebcb1f9c7f1c204630408"])
-    yield Cursor("copy", (1, 1), [with_badge(badge(glyph(["..X..", "..X..", "XXXXX", "..X..", "..X.."])))],
+    yield Cursor("copy", TIP, [with_badge(badge(glyph(["..X..", "..X..", "XXXXX", "..X..", "..X.."])))],
                  ["dnd-copy", "1081e37283d90000800003c07f3ef6bf", "6407b0e94181790501fd1e167b474872",
                   "08ffe1cb5fe6fc01f906f1c063814ccf"])
-    yield Cursor("alias", (1, 1), [with_badge(badge(glyph(["..XXX", "...XX", "..X.X", ".X...", "X...."])))],
+    yield Cursor("alias", TIP, [with_badge(badge(glyph(["..XXX", "...XX", "..X.X", ".X...", "X...."])))],
                  ["dnd-link", "link", "3085a0e285430894940527032f8b26df", "640fb0e74195791501fd1ed57b41487f",
                   "a2a266d0498c3104214a47bd64ab0fc8", "0876e1c15ff2fc01f906f1c363074c0f"])
-    yield Cursor("context-menu", (1, 1),
+    yield Cursor("context-menu", TIP,
                  [with_badge(badge(glyph(["XXXXX", ".....", "XXXXX", ".....", "XXX.."]), square=True))])
-    yield Cursor("no-drop", (1, 1), [with_badge(badge(glyph(["....X", "...X.", "..X..", ".X...", "X...."]), c="r"))],
+    yield Cursor("no-drop", TIP, [with_badge(badge(glyph(["....X", "...X.", "..X..", ".X...", "X...."]), c="r"))],
                  ["dnd_no_drop", "dnd-no-drop", "forbidden"])
     nope = disk(8, 8, 4.6, 6.9, "r").where(lambda x, y: abs(x + y - 16) <= 1 and 3 <= x <= 13, "r")
-    yield Cursor("not-allowed", (8, 8), [nope], ["crossed_circle", "circle", "03b6e0fcb3499374a867c041f52298f0"])
+    yield Cursor("not-allowed", MID, [nope], ["crossed_circle", "circle", "03b6e0fcb3499374a867c041f52298f0"])
 
-    yield Cursor("pencil", (2, 14), [pencil()], ["draft"])
-    yield Cursor("color-picker", (2, 14), [dropper()])
-    yield Cursor("zoom-in", (6, 6), [lens(True)], ["zoom_in"])
-    yield Cursor("zoom-out", (6, 6), [lens(False)], ["zoom_out"])
+    yield Cursor("pencil", (2, 14.4), [pencil()], ["draft"])
+    yield Cursor("color-picker", (2, 14.4), [dropper()])
+    yield Cursor("zoom-in", (6.2, 6.2), [lens(True)], ["zoom_in"])
+    yield Cursor("zoom-out", (6.2, 6.2), [lens(False)], ["zoom_out"])
