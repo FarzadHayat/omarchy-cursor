@@ -274,6 +274,29 @@
   .tiles img { width: 54px; height: 54px; }
   .tiles span { font-size: 0.8rem; }
 
+  #click-area {
+    position: relative;
+    height: 260px;
+    border-radius: 14px;
+    background: var(--glass-strong);
+    border: 1px solid var(--edge);
+    overflow: hidden;
+  }
+  #click-area .target, #click-area .hit { position: absolute; pointer-events: none; }
+  #click-area .target { width: 21px; height: 21px; margin: -10px 0 0 -10px; }
+  #click-area .target::before, #click-area .target::after { content: ""; position: absolute; background: var(--fg); }
+  #click-area .target::before { left: 10px; top: 0; width: 1px; height: 21px; }
+  #click-area .target::after { top: 10px; left: 0; height: 1px; width: 21px; }
+  #click-area .hit { width: 5px; height: 5px; margin: -2px 0 0 -2px; border-radius: 50%; background: var(--accent2); }
+  select {
+    font: inherit;
+    min-height: 44px;
+    padding: 0 0.75rem;
+    border-radius: 12px;
+    border: 1px solid var(--edge);
+    background: var(--glass-strong);
+    color: var(--fg);
+  }
   footer { max-width: 1180px; margin: 0 auto; padding: 0.5rem calc(var(--gap) * 2) 2rem; color: var(--muted); font-size: 0.8rem; }
   .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
@@ -346,6 +369,19 @@
   </section>
 
   <div id="groups" style="display: contents"></div>
+
+  <section class="window glass wide" id="click-test" aria-labelledby="click-title">
+    <div class="titlebar"><h2 id="click-title">click-test</h2></div>
+    <div class="body stack">
+      <div class="row">
+        <label for="click-cursor">Cursor</label>
+        <select id="click-cursor"></select>
+        <button type="button" id="click-reset">New targets</button>
+        <p class="help" id="click-result" aria-live="polite">Click the center of each crosshair. Each click is marked where it actually landed.</p>
+      </div>
+      <div id="click-area" role="application" aria-label="Click test area"></div>
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -546,6 +582,7 @@
         if (name === "wait") paradeWait = img;
         return img;
       }));
+    if (window.clickTestReady) areaCursor();
     say(`Showing ${label}`);
   }
 
@@ -614,6 +651,51 @@
     document.documentElement.classList.remove("dragging");
     if (e.dataTransfer.files[0]) useFile(e.dataTransfer.files[0]);
   });
+
+  // Click test: crosshair targets, and a mark wherever a click actually lands.
+  const area = document.getElementById("click-area");
+  const clickCursor = document.getElementById("click-cursor");
+  const clickResult = document.getElementById("click-result");
+  for (const t of tiles) clickCursor.append(new Option(t.name, t.name));
+  function placeTargets() {
+    area.replaceChildren();
+    const { width, height } = area.getBoundingClientRect();
+    for (let i = 0; i < 8; i++) {
+      const dot = document.createElement("span");
+      dot.className = "target";
+      dot.style.left = `${Math.round(30 + Math.random() * (width - 60))}px`;
+      dot.style.top = `${Math.round(30 + Math.random() * (height - 60))}px`;
+      area.append(dot);
+    }
+  }
+  function areaCursor() {
+    const name = clickCursor.value;
+    if (installed && !imageOnly.includes(name) && !extras.includes(name)) area.style.cursor = name;
+    else if (current) area.style.cursor = cssCursor(current[name], 0, extras.includes(name) ? "default" : name);
+  }
+  area.addEventListener("click", e => {
+    const box = area.getBoundingClientRect();
+    const x = e.clientX - box.left, y = e.clientY - box.top;
+    const hit = document.createElement("span");
+    hit.className = "hit";
+    hit.style.left = `${x}px`;
+    hit.style.top = `${y}px`;
+    area.append(hit);
+    let best = Infinity, dx = 0, dy = 0;
+    for (const t of area.querySelectorAll(".target")) {
+      const tx = parseFloat(t.style.left), ty = parseFloat(t.style.top);
+      const d = Math.hypot(x - tx, y - ty);
+      if (d < best) [best, dx, dy] = [d, Math.round(x - tx), Math.round(y - ty)];
+    }
+    clickResult.textContent = best < 40
+      ? `${clickCursor.value}: ${dx === 0 && dy === 0 ? "dead center" : `off by ${dx} across, ${dy} down`} (CSS pixels)`
+      : `${clickCursor.value}: no crosshair nearby`;
+  });
+  clickCursor.addEventListener("change", areaCursor);
+  document.getElementById("click-reset").addEventListener("click", placeTargets);
+  placeTargets();
+  window.clickTestReady = true;
+  areaCursor();
 
   // Style
   for (const button of document.querySelectorAll("button[data-style]")) {
