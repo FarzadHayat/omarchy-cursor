@@ -10,158 +10,307 @@
     --bg: #121c2b;
     --fg: #e8d4b0;
     --accent: #e8b84a;
-    --tile: color-mix(in srgb, var(--bg), var(--fg) 7%);
-    --line: color-mix(in srgb, var(--bg), var(--fg) 18%);
+    --accent2: #c94b32;
+    --glass: color-mix(in srgb, var(--bg) 42%, transparent);
+    --glass-strong: color-mix(in srgb, var(--bg) 62%, transparent);
+    --edge: color-mix(in srgb, #fff 16%, transparent);
+    --shine: color-mix(in srgb, #fff 28%, transparent);
     --muted: color-mix(in srgb, var(--fg), var(--bg) 35%);
+    --border: linear-gradient(45deg, var(--accent), var(--accent2));
+    --gap: 10px;
+    --radius: 18px;
     color-scheme: dark;
   }
-  :root[data-light] { color-scheme: light; }
-  :root[data-bg="light"] { --bg: #eceff4 !important; --fg: #2e3440 !important; color-scheme: light; }
-  :root[data-bg="busy"] { --tile: color-mix(in srgb, var(--bg) 70%, transparent); }
+  :root[data-light] {
+    --glass: color-mix(in srgb, #fff 45%, transparent);
+    --glass-strong: color-mix(in srgb, #fff 65%, transparent);
+    --edge: color-mix(in srgb, #fff 60%, transparent);
+    --shine: color-mix(in srgb, #fff 80%, transparent);
+    color-scheme: light;
+  }
+  :root[data-bg="light"] { --bg: #e5e9f0 !important; --fg: #2e3440 !important; }
   * { box-sizing: border-box; }
-  html { background: var(--bg); transition: background 0.2s; }
-  :root[data-bg="busy"] {
+
+  /* Wallpaper: the theme's colors drifting behind the glass. */
+  html { background: var(--bg); }
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    inset: -20vmax;
+    z-index: -2;
+    pointer-events: none;
+  }
+  body::before {
+    background:
+      radial-gradient(38vmax 38vmax at 18% 22%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%),
+      radial-gradient(34vmax 34vmax at 82% 30%, color-mix(in srgb, var(--accent2) 50%, transparent), transparent 70%),
+      radial-gradient(42vmax 42vmax at 55% 88%, color-mix(in srgb, var(--accent) 30%, var(--accent2) 30%), transparent 70%);
+    filter: blur(20px);
+    animation: drift 28s ease-in-out infinite alternate;
+  }
+  /* A faint pixel grid, a nod to the 8-bit art. */
+  body::after {
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--fg) 5%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--fg) 5%, transparent) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  :root[data-bg="busy"] body::before {
     background: repeating-conic-gradient(#d9783a 0 25%, #3d6fb8 0 50%) 0 0 / 48px 48px;
+    filter: none;
+    animation: none;
   }
+  @keyframes drift {
+    to { transform: translate(4vmax, -3vmax) rotate(8deg) scale(1.08); }
+  }
+
   body {
-    margin: 0 auto;
-    max-width: 1120px;
-    padding: 2rem 1.25rem 3rem;
+    margin: 0;
+    min-height: 100vh;
     color: var(--fg);
-    font: 15px/1.5 ui-monospace, "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font: 14px/1.5 ui-monospace, "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
   }
-  :root.dragging body { outline: 3px dashed var(--accent); outline-offset: 0.5rem; }
+  :root.dragging main { outline: 2px dashed var(--accent); outline-offset: 6px; border-radius: var(--radius); }
   a { color: var(--accent); }
   img.px { image-rendering: pixelated; }
+  code { font: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; margin-bottom: 2rem; }
-  .parade { display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 54px; }
-  .parade img { width: 54px; height: 54px; }
-  h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.25rem); line-height: 1.1; letter-spacing: -0.02em; }
-  h1 span { color: var(--accent); }
-  .tagline { margin: 0; max-width: 60ch; color: var(--muted); font-size: 1.05rem; }
-  .install { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
-  .install[hidden] { display: none; }
-  .command { display: flex; gap: 0.5rem; flex: 1 1 28rem; min-width: 0; }
-  .command code {
-    flex: 1;
-    min-width: 0;
-    padding: 0.7rem 1rem;
-    border-radius: 10px;
-    background: var(--tile);
-    border: 1px solid var(--line);
-    overflow-x: auto;
+  /* Liquid glass: frosted, tinted, lit from the top edge. */
+  .glass {
+    position: relative;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(22px) saturate(170%);
+    backdrop-filter: blur(22px) saturate(170%);
+    border: 1px solid var(--edge);
+    border-radius: var(--radius);
+    box-shadow:
+      inset 0 1px 0 var(--shine),
+      inset 0 -1px 0 color-mix(in srgb, #fff 6%, transparent),
+      0 12px 40px color-mix(in srgb, #000 30%, transparent);
+  }
+  .glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(160deg, color-mix(in srgb, #fff 14%, transparent), transparent 40%);
+  }
+
+  /* Waybar */
+  .bar {
+    position: sticky;
+    top: var(--gap);
+    z-index: 10;
+    margin: var(--gap);
+    padding: 0.35rem 0.5rem;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .bar .brand { display: flex; align-items: center; gap: 0.4rem; font-weight: 700; padding-left: 0.4rem; }
+  .bar .brand img { width: 27px; height: 27px; }
+  .workspaces { display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none; flex: 1; justify-content: center; }
+  .workspaces a {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    padding: 0 0.6rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: var(--muted);
+    text-decoration: none;
     white-space: nowrap;
   }
+  .workspaces a[aria-current="true"] { background: var(--border); color: var(--bg); font-weight: 700; }
+  .bar .clock { color: var(--muted); padding-right: 0.6rem; white-space: nowrap; }
+
+  /* Tiled windows */
+  main {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: var(--gap);
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: var(--gap);
+  }
+  .window { display: grid; grid-template-rows: auto 1fr; min-width: 0; overflow: hidden; }
+  .window.wide { grid-column: 1 / -1; }
+  .titlebar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+    border-bottom: 1px solid var(--edge);
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  .titlebar::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .titlebar h2 { all: unset; }
+  .body { padding: 1.25rem; min-width: 0; }
+
+  .parade { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  .parade img { width: 54px; height: 54px; }
+  h1 { margin: 0 0 0.5rem; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.05; letter-spacing: -0.02em; }
+  h1 span {
+    background: var(--border);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tagline { margin: 0 0 1.25rem; color: var(--muted); max-width: 52ch; }
+  .install { display: grid; gap: 0.6rem; }
+  .install[hidden] { display: none; }
+  .command {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.35rem 0.35rem 0.35rem 0.9rem;
+    border-radius: 12px;
+    background: var(--glass-strong);
+    border: 1px solid var(--edge);
+  }
+  .command code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; padding: 0.4rem 0; }
+  .command code::before { content: "$ "; color: var(--accent); }
 
   button, .button {
     font: inherit;
     min-height: 44px;
     padding: 0 1rem;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    background: var(--tile);
+    border-radius: 12px;
+    border: 1px solid var(--edge);
+    background: var(--glass-strong);
     color: var(--fg);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     text-decoration: none;
+    box-shadow: inset 0 1px 0 var(--shine);
   }
-  .primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
-  button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .primary {
+    background: var(--border);
+    color: var(--bg);
+    border-color: transparent;
+    font-weight: 700;
+    justify-self: start;
+  }
+  button[aria-pressed="true"] {
+    border: 2px solid transparent;
+    background: linear-gradient(var(--glass-strong), var(--glass-strong)) padding-box, var(--border) border-box;
+  }
 
-  .panel {
-    display: grid;
-    gap: 1rem;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    border-radius: 14px;
-    background: var(--tile);
-    border: 1px solid var(--line);
-  }
-  .panel h2, section > h2 {
-    margin: 0;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-  }
-  .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .stack { display: grid; gap: 1rem; }
+  .label { margin: 0 0 0.5rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .row { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+  .chip { padding: 0 0.75rem; border-radius: 999px; min-height: 38px; font-size: 0.85rem; }
   .chip .swatch { display: inline-flex; }
-  .chip .swatch i {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
-  }
-  .chip .swatch i + i { margin-left: -5px; }
-  .help { margin: 0; color: var(--muted); font-size: 0.85rem; flex: 1 1 30ch; }
+  .chip .swatch i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--edge); }
+  .chip .swatch i + i { margin-left: -4px; }
+  .help { margin: 0.5rem 0 0; color: var(--muted); font-size: 0.8rem; }
 
-  section > h2 { margin: 2rem 0 0.75rem; }
   ul.tiles {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    gap: var(--gap);
   }
   .tiles li {
     display: grid;
     justify-items: center;
     align-content: center;
-    gap: 0.6rem;
-    min-height: 130px;
-    padding: 1rem 0.5rem;
-    border-radius: 12px;
-    background: var(--tile);
-    border: 1px solid var(--line);
+    gap: 0.5rem;
+    min-height: 124px;
+    padding: 0.9rem 0.5rem;
+    border-radius: 14px;
+    border: 2px solid transparent;
+    background: linear-gradient(var(--glass-strong), var(--glass-strong)) padding-box,
+                linear-gradient(var(--edge), var(--edge)) border-box;
     text-align: center;
     word-break: break-word;
-    transition: transform 0.12s, border-color 0.12s;
+    transition: transform 0.15s, box-shadow 0.15s;
   }
-  .tiles li:hover { border-color: var(--accent); transform: translateY(-2px); }
+  /* Hovered tile gets the theme's Hyprland active border. */
+  .tiles li:hover, .tiles li:focus-visible {
+    background: linear-gradient(var(--glass-strong), var(--glass-strong)) padding-box, var(--border) border-box;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 25%, transparent);
+    outline: none;
+  }
   .tiles img { width: 54px; height: 54px; }
-  .tiles span { font-size: 0.85rem; }
-  footer { margin-top: 3rem; color: var(--muted); font-size: 0.85rem; }
+  .tiles span { font-size: 0.8rem; }
+
+  footer { max-width: 1180px; margin: 0 auto; padding: 0.5rem calc(var(--gap) * 2) 2rem; color: var(--muted); font-size: 0.8rem; }
   .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  @media (max-width: 760px) {
+    main { grid-template-columns: minmax(0, 1fr); }
+    .bar .clock, .bar .brand span { display: none; }
+    .workspaces { justify-content: flex-start; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body::before { animation: none; }
+    * { transition: none !important; }
+  }
 </style>
 </head>
 <body>
-<header class="hero">
-  <div class="parade" aria-hidden="true" id="parade"></div>
-  <h1>Omarchy <span>Pixel Cursors</span></h1>
-  <p class="tagline" id="tagline">Test area. Hover a tile to see that cursor on your real pointer.</p>
-  <div class="install" id="install" hidden>
-    <a class="button primary" href="https://github.com/FarzadHayat/omarchy-pixel-cursors">Install from GitHub</a>
-    <div class="command">
-      <code id="command" tabindex="0" aria-label="Install command">omarchy pkg add xorg-xcursorgen &amp;&amp; git clone https://github.com/FarzadHayat/omarchy-pixel-cursors.git ~/.local/share/omarchy-pixel-cursors &amp;&amp; ~/.local/share/omarchy-pixel-cursors/install.sh</code>
-      <button type="button" id="copy">Copy</button>
-    </div>
-  </div>
-</header>
+<nav class="bar glass" aria-label="Sections">
+  <span class="brand"><img class="px" id="brand" alt=""> <span>pixel cursors</span></span>
+  <div class="workspaces" id="workspaces"></div>
+  <span class="clock" id="clock" aria-hidden="true"></span>
+</nav>
 
 <main>
-  <div class="panel">
-    <h2 id="theme-label">Theme</h2>
-    <div class="row" role="group" aria-labelledby="theme-label" id="themes"></div>
-    <div class="row">
-      <button type="button" id="load">Use your theme…</button>
-      <input type="file" id="file" accept=".toml" hidden>
-      <p class="help" id="load-help">Pick your <code>colors.toml</code> or drop it on the page. It never leaves your computer.
-        Find it in <code>~/.config/omarchy/themes/</code> or <code>~/.local/state/omarchy/current/theme/</code>.</p>
+  <section class="window glass" aria-labelledby="hero-title">
+    <div class="titlebar"><h2 id="hero-title">~/omarchy-pixel-cursors</h2></div>
+    <div class="body">
+      <div class="parade" aria-hidden="true" id="parade"></div>
+      <h1>Omarchy <span>Pixel Cursors</span></h1>
+      <p class="tagline" id="tagline">Test area. Hover a tile to see that cursor on your real pointer.</p>
+      <div class="install" id="install" hidden>
+        <div class="command">
+          <code id="command" tabindex="0" aria-label="Install command">omarchy pkg add xorg-xcursorgen &amp;&amp; git clone https://github.com/FarzadHayat/omarchy-pixel-cursors.git ~/.local/share/omarchy-pixel-cursors &amp;&amp; ~/.local/share/omarchy-pixel-cursors/install.sh</code>
+          <button type="button" id="copy">Copy</button>
+        </div>
+        <a class="button primary" href="https://github.com/FarzadHayat/omarchy-pixel-cursors">View on GitHub</a>
+      </div>
     </div>
-    <h2 id="bg-label">Background</h2>
-    <div class="row" role="group" aria-labelledby="bg-label">
-      <button type="button" data-bg="theme" aria-pressed="true">Theme</button>
-      <button type="button" data-bg="light" aria-pressed="false">Light</button>
-      <button type="button" data-bg="busy" aria-pressed="false">Busy</button>
+  </section>
+
+  <section class="window glass" aria-labelledby="settings-title">
+    <div class="titlebar"><h2 id="settings-title">theme</h2></div>
+    <div class="body stack">
+      <div>
+        <p class="label" id="theme-label">Theme</p>
+        <div class="row" role="group" aria-labelledby="theme-label" id="themes"></div>
+      </div>
+      <div>
+        <button type="button" id="load">Use your theme…</button>
+        <input type="file" id="file" accept=".toml" hidden>
+        <p class="help" id="load-help">Pick your <code>colors.toml</code> or drop it on the page. It never leaves your computer.
+          Find it in <code>~/.config/omarchy/themes/</code> or <code>~/.local/state/omarchy/current/theme/</code>.</p>
+      </div>
+      <div>
+        <p class="label" id="bg-label">Background</p>
+        <div class="row" role="group" aria-labelledby="bg-label">
+          <button type="button" data-bg="theme" aria-pressed="true">Theme</button>
+          <button type="button" data-bg="light" aria-pressed="false">Light</button>
+          <button type="button" data-bg="busy" aria-pressed="false">Busy</button>
+        </div>
+      </div>
     </div>
-  </div>
-  <div id="groups"></div>
+  </section>
+
+  <div id="groups" style="display: contents"></div>
 </main>
 
 <footer>
@@ -192,12 +341,23 @@
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const say = text => { status.textContent = text; };
 
-  // Tiles
+  // Each cursor group is a tiled window, with a matching workspace in the bar.
   const tiles = [];
-  for (const [title, names] of Object.entries(groups)) {
+  const workspaces = document.getElementById("workspaces");
+  Object.entries(groups).forEach(([title, names], i) => {
+    const id = title.toLowerCase().replace(/\W+/g, "-");
     const section = document.createElement("section");
+    section.className = "window glass" + (names.length > 6 ? " wide" : "");
+    section.id = id;
+    section.setAttribute("aria-labelledby", `${id}-title`);
+    const bar = document.createElement("div");
+    bar.className = "titlebar";
     const h = document.createElement("h2");
-    h.textContent = title;
+    h.id = `${id}-title`;
+    h.textContent = `cursors/${id}`;
+    bar.append(h);
+    const body = document.createElement("div");
+    body.className = "body";
     const ul = document.createElement("ul");
     ul.className = "tiles";
     for (const name of names) {
@@ -212,10 +372,36 @@
       ul.append(li);
       tiles.push({ li, img, name });
     }
-    section.append(h, ul);
-    if (title === "More") section.id = "extras";
+    body.append(ul);
+    section.append(bar, body);
     document.getElementById("groups").append(section);
-  }
+
+    const link = document.createElement("a");
+    link.href = `#${id}`;
+    link.textContent = i + 1;
+    link.title = title;
+    link.setAttribute("aria-label", title);
+    workspaces.append(link);
+  });
+
+  // Highlight the workspace for the section in view, like Waybar.
+  const links = [...workspaces.querySelectorAll("a")];
+  const observer = new IntersectionObserver(entries => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        for (const a of links) a.setAttribute("aria-current", String(a.hash === `#${e.target.id}`));
+      }
+    }
+  }, { rootMargin: "-40% 0px -55% 0px" });
+  document.querySelectorAll("#groups > section").forEach(s => observer.observe(s));
+  links[0].setAttribute("aria-current", "true");
+
+  const clock = document.getElementById("clock");
+  const tickClock = () => {
+    clock.textContent = new Date().toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" });
+  };
+  tickClock();
+  setInterval(tickClock, 10000);
 
   // Each theme's frames are drawn once and cached.
   const cache = new Map();
@@ -260,6 +446,20 @@
     t.li.addEventListener("pointerleave", () => { if (hovered === t) hovered = null; });
   }
 
+  // Second color of the theme's Hyprland active border, for the gradients.
+  function secondColor(colors) {
+    const found = (colors.hyprland_active_border || "").match(/rgba?\(([0-9a-f]{6})/gi) || [];
+    const hexes = found.map(s => "#" + s.replace(/rgba?\(/i, ""));
+    return hexes.find(h => h.toLowerCase() !== colors.accent.toLowerCase()) || colors.red || colors.accent;
+  }
+
+  // Light glass for light themes and the light background.
+  let themeMode = "dark";
+  function updateLight() {
+    const bg = document.documentElement.dataset.bg;
+    document.documentElement.toggleAttribute("data-light", bg === "light" || (themeMode === "light" && bg !== "busy"));
+  }
+
   function show(key, colors, label) {
     installed = key === "installed";
     current = rendered(key, colors);
@@ -267,7 +467,9 @@
     root.style.setProperty("--bg", colors.background);
     root.style.setProperty("--fg", colors.foreground);
     root.style.setProperty("--accent", colors.accent);
-    root.toggleAttribute("data-light", colors.mode === "light");
+    root.style.setProperty("--accent2", secondColor(colors));
+    themeMode = colors.mode;
+    updateLight();
     for (const t of tiles) {
       const cur = current[t.name];
       t.img.src = cur.icon[0];
@@ -275,10 +477,12 @@
       else t.li.style.cursor = cssCursor(cur, 0, extras.includes(t.name) ? "default" : t.name);
     }
     // Browsers have no CSS name for these, so they can't show the installed cursor.
-    document.getElementById("extras").hidden = installed;
+    document.getElementById("more").hidden = installed;
+    links[links.length - 1].hidden = installed;
     for (const b of document.querySelectorAll("#themes button")) {
       b.setAttribute("aria-pressed", String(b.dataset.key === key));
     }
+    document.getElementById("brand").src = current.default.icon[0];
     document.getElementById("parade").replaceChildren(
       ...["default", "pointer", "grab", "text", "wait", "help"].map(name => {
         const img = document.createElement("img");
@@ -362,6 +566,7 @@
       const root = document.documentElement;
       if (button.dataset.bg === "theme") delete root.dataset.bg;
       else root.dataset.bg = button.dataset.bg;
+      updateLight();
       for (const b of document.querySelectorAll("button[data-bg]")) {
         b.setAttribute("aria-pressed", String(b === button));
       }

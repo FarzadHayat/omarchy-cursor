@@ -298,7 +298,7 @@ def test_page(dest, hosted=False):
         active = HOME / ".local/state/omarchy/current/theme.name"
         active = active.read_text().strip() if active.is_file() else None
     keys = ("mode", "accent", "background", "foreground", "red", "darker_background",
-            "dark_background", "bright_foreground", "light_foreground")
+            "dark_background", "bright_foreground", "light_foreground", "hyprland_active_border")
     data = {
         "active": active,
         "hosted": hosted,
