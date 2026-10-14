@@ -611,6 +611,8 @@
     document.getElementById("load-help").textContent = "Run ./build.py --test-page to enable the previews.";
   } else {
     if (hosted) {
+      // The click test is a tool for checking hotspots; the public page leaves it out.
+      document.getElementById("click-test").hidden = true;
       document.title = "Omarchy Pixel Cursors";
       document.getElementById("tagline").textContent =
         "Animated 8-bit cursors that recolor themselves to match your Omarchy theme. Hover a tile to try one on your pointer.";
