@@ -62,6 +62,23 @@
     filter: none;
     animation: none;
   }
+  /* Busy: no frost, so cursors are seen right on top of the pattern. */
+  :root[data-bg="busy"] .tiles li { background: none; border-color: var(--edge); }
+  :root[data-bg="busy"] .tiles li:hover, :root[data-bg="busy"] .tiles li:focus-visible {
+    background: none;
+    border-color: var(--accent);
+  }
+  :root[data-bg="busy"] #groups .glass {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :root[data-bg="busy"] #groups .glass::before { display: none; }
+  :root[data-bg="busy"] .tiles span, :root[data-bg="busy"] #groups .titlebar h2 {
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: var(--bg);
+  }
   @keyframes drift {
     to { transform: translate(4vmax, -3vmax) rotate(8deg) scale(1.08); }
   }
