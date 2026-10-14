@@ -39,6 +39,7 @@
   }
   :root[data-bg="light"] { --bg: #e5e9f0 !important; --fg: #2e3440 !important; }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }  /* layout rules below would otherwise override it */
 
   /* Wallpaper: the theme's colors drifting behind the glass. */
   html { background: var(--bg); }
