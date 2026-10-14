@@ -9,7 +9,6 @@ Needs: python 3.11+, xcursorgen, hyprcursor-util.
 """
 
 import argparse
-import base64
 import colorsys
 import json
 import os
@@ -281,7 +280,7 @@ def preview(cursors, work, pal, colors, dest):
 
 
 def test_page(dest, hosted=False):
-    """Every theme's cursors as data URIs, for the theme switcher in test.html.
+    """Theme colors and pixel art for test.html, which draws the cursors itself.
 
     A hosted page only uses the stock Omarchy themes and opens on a theme,
     since visitors do not have the cursor installed.
@@ -297,22 +296,18 @@ def test_page(dest, hosted=False):
     else:
         active = HOME / ".local/state/omarchy/current/theme.name"
         active = active.read_text().strip() if active.is_file() else None
-    cursors = [(cur, [pixelart.finish(g) for g in cur.frames]) for cur in pixelart.all_cursors()]
-    data = {"active": active, "hosted": hosted, "themes": {}}
-    for name, path in sorted(themes.items()):
-        colors, _ = load_colors(str(path))
-        pal = Palette(colors)
-        cmap = png_colors(pal)
-        entry = {"background": colors["background"], "foreground": colors["foreground"],
-                 "accent": colors["accent"], "light": colors.get("mode") == "light", "cursors": {}}
-        for cur, frames in cursors:
-            entry["cursors"][cur.name] = {
-                "hotspot": [cur.hotspot[0] * 2 + 1, cur.hotspot[1] * 2 + 1],
-                "delay": cur.delay,
-                "frames": ["data:image/png;base64," + base64.b64encode(pixelart.png(f, cmap, 2)).decode()
-                           for f in frames],
-            }
-        data["themes"][name] = entry
+    keys = ("mode", "accent", "background", "foreground", "red", "darker_background",
+            "dark_background", "bright_foreground", "light_foreground")
+    data = {
+        "active": active,
+        "hosted": hosted,
+        "themes": {name: {k: v for k, v in load_colors(str(path))[0].items() if k in keys}
+                   for name, path in sorted(themes.items())},
+        "art": {cur.name: {"hotspot": list(cur.hotspot), "delay": cur.delay,
+                           "frames": [["".join("%" if c == "shadow" else c for c in row)
+                                       for row in pixelart.finish(g)] for g in cur.frames]}
+                for cur in pixelart.all_cursors()},
+    }
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text("window.CURSOR_THEMES = " + json.dumps(data, separators=(",", ":")) + ";\n")
     print(f"Wrote {len(themes)} themes to {dest}")
@@ -340,6 +335,7 @@ def main():
         page = (ROOT / "test.html").read_text().replace('src="test/themes.js"', 'src="themes.js"')
         page = page.replace("<title>Omarchy Cursor test area</title>", "<title>Omarchy Cursor</title>")
         (args.site / "index.html").write_text(page)
+        shutil.copy(ROOT / "cursors.js", args.site / "cursors.js")
         print(f"Wrote site to {args.site}")
         return
 

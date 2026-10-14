@@ -2,7 +2,7 @@
 
 Animated 8-bit cursors for [Omarchy](https://omarchy.org) that take their colors from your theme. Switch themes and the cursor rebuilds itself to match.
 
-**[Try them in your browser](https://farzadhayat.github.io/omarchy-cursor/)**, no install needed.
+**[Try them in your browser](https://farzadhayat.github.io/omarchy-cursor/)**, no install needed. Pick any stock Omarchy theme, or load your own `colors.toml` to see your theme's cursors.
 
 ![All cursors](preview/sheet.png)
 

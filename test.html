@@ -4,111 +4,177 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Omarchy Cursor test area</title>
+<meta name="description" content="Animated 8-bit cursors that match your Omarchy theme. Try them in your browser.">
 <style>
   :root {
     --bg: #121c2b;
-    --tile: #1c2e46;
     --fg: #e8d4b0;
-    --muted: #8a9bb3;
-    --focus: #e8b84a;
+    --accent: #e8b84a;
+    --tile: color-mix(in srgb, var(--bg), var(--fg) 7%);
+    --line: color-mix(in srgb, var(--bg), var(--fg) 18%);
+    --muted: color-mix(in srgb, var(--fg), var(--bg) 35%);
     color-scheme: dark;
   }
-  :root[data-bg="light"] {
-    --bg: #eceff4 !important; --tile: #ffffff !important; --fg: #2e3440 !important;
-    --muted: #5a6475; color-scheme: light;
-  }
-  :root[data-bg="busy"] { --tile: transparent !important; }
+  :root[data-light] { color-scheme: light; }
+  :root[data-bg="light"] { --bg: #eceff4 !important; --fg: #2e3440 !important; color-scheme: light; }
+  :root[data-bg="busy"] { --tile: color-mix(in srgb, var(--bg) 70%, transparent); }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    padding: 1.5rem;
-    background: var(--bg);
-    color: var(--fg);
-    font: 15px/1.4 ui-monospace, "JetBrainsMono Nerd Font", monospace;
-  }
-  :root[data-bg="busy"] body {
+  html { background: var(--bg); transition: background 0.2s; }
+  :root[data-bg="busy"] {
     background: repeating-conic-gradient(#d9783a 0 25%, #3d6fb8 0 50%) 0 0 / 48px 48px;
   }
-  header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-  h1 { margin: 0; font-size: 1.25rem; }
-  p { margin: 0.25rem 0 0; color: var(--muted); }
-  a { color: var(--focus); }
-  .controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
-  label { color: var(--muted); }
-  select {
-    font: inherit;
-    min-height: 44px;
-    margin-left: 0.5rem;
-    padding: 0 0.75rem;
-    border-radius: 8px;
-    border: 2px solid var(--muted);
-    background: var(--tile);
+  body {
+    margin: 0 auto;
+    max-width: 1120px;
+    padding: 2rem 1.25rem 3rem;
     color: var(--fg);
+    font: 15px/1.5 ui-monospace, "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
   }
-  fieldset { border: 0; padding: 0; margin: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  legend { float: left; margin-right: 0.5rem; padding: 0.6rem 0; color: var(--muted); }
-  button {
+  :root.dragging body { outline: 3px dashed var(--accent); outline-offset: 0.5rem; }
+  a { color: var(--accent); }
+  img.px { image-rendering: pixelated; }
+
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .parade { display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 54px; }
+  .parade img { width: 54px; height: 54px; }
+  h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.25rem); line-height: 1.1; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent); }
+  .tagline { margin: 0; max-width: 60ch; color: var(--muted); font-size: 1.05rem; }
+  .install { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+  .install[hidden] { display: none; }
+  .command { display: flex; gap: 0.5rem; flex: 1 1 28rem; min-width: 0; }
+  .command code {
+    flex: 1;
+    min-width: 0;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  button, .button {
     font: inherit;
     min-height: 44px;
     padding: 0 1rem;
-    border-radius: 8px;
-    border: 2px solid var(--muted);
+    border-radius: 10px;
+    border: 1px solid var(--line);
     background: var(--tile);
     color: var(--fg);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
   }
-  button[aria-pressed="true"] { border-color: var(--focus); }
-  h2 { font-size: 1rem; margin: 1.5rem 0 0.5rem; color: var(--muted); }
-  ul {
+  .primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+  button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .panel {
+    display: grid;
+    gap: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border-radius: 14px;
+    background: var(--tile);
+    border: 1px solid var(--line);
+  }
+  .panel h2, section > h2 {
+    margin: 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .chip .swatch { display: inline-flex; }
+  .chip .swatch i {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  }
+  .chip .swatch i + i { margin-left: -5px; }
+  .help { margin: 0; color: var(--muted); font-size: 0.85rem; flex: 1 1 30ch; }
+
+  section > h2 { margin: 2rem 0 0.75rem; }
+  ul.tiles {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 0.75rem;
   }
-  li {
-    min-height: 110px;
+  .tiles li {
     display: grid;
-    place-items: center;
-    padding: 0.75rem;
-    border-radius: 10px;
+    justify-items: center;
+    align-content: center;
+    gap: 0.6rem;
+    min-height: 130px;
+    padding: 1rem 0.5rem;
+    border-radius: 12px;
     background: var(--tile);
-    border: 2px solid transparent;
+    border: 1px solid var(--line);
     text-align: center;
     word-break: break-word;
+    transition: transform 0.12s, border-color 0.12s;
   }
-  li:hover { border-color: var(--muted); }
-  li:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-  .note { margin-top: 1.5rem; }
+  .tiles li:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .tiles img { width: 54px; height: 54px; }
+  .tiles span { font-size: 0.85rem; }
+  footer { margin-top: 3rem; color: var(--muted); font-size: 0.85rem; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
-<header>
-  <div>
-    <h1>Omarchy Cursor test area</h1>
-    <p>Hover a tile to see that cursor on your real pointer.</p>
-  </div>
-  <div class="controls">
-  <label>Theme
-    <select id="theme" aria-describedby="theme-help">
-      <option value="">Installed cursor</option>
-    </select>
-  </label>
-  <fieldset>
-    <legend>Background</legend>
-    <button type="button" data-bg="dark" aria-pressed="true">Dark</button>
-    <button type="button" data-bg="light" aria-pressed="false">Light</button>
-    <button type="button" data-bg="busy" aria-pressed="false">Busy</button>
-  </fieldset>
+<header class="hero">
+  <div class="parade" aria-hidden="true" id="parade"></div>
+  <h1>Omarchy <span>Cursor</span></h1>
+  <p class="tagline" id="tagline">Test area. Hover a tile to see that cursor on your real pointer.</p>
+  <div class="install" id="install" hidden>
+    <a class="button primary" href="https://github.com/FarzadHayat/omarchy-cursor">Install from GitHub</a>
+    <div class="command">
+      <code id="command" tabindex="0" aria-label="Install command">omarchy pkg add xorg-xcursorgen &amp;&amp; git clone https://github.com/FarzadHayat/omarchy-cursor.git ~/.local/share/omarchy-cursor &amp;&amp; ~/.local/share/omarchy-cursor/install.sh</code>
+      <button type="button" id="copy">Copy</button>
+    </div>
   </div>
 </header>
-<p id="theme-help">Installed cursor uses your real theme. Picking a theme previews its colors here only; switch for real with <code>omarchy theme set</code>.</p>
-<main id="groups"></main>
-<p class="note" id="note">Pick a theme to also preview pencil, color-picker, X_cursor, dotbox, right_ptr and center_ptr, which browsers have no CSS name for.</p>
-<p class="sr-status" aria-live="polite" id="status" style="position:absolute;left:-9999px"></p>
+
+<main>
+  <div class="panel">
+    <h2 id="theme-label">Theme</h2>
+    <div class="row" role="group" aria-labelledby="theme-label" id="themes"></div>
+    <div class="row">
+      <button type="button" id="load">Use your theme…</button>
+      <input type="file" id="file" accept=".toml" hidden>
+      <p class="help" id="load-help">Pick your <code>colors.toml</code> or drop it on the page. It never leaves your computer.
+        Find it in <code>~/.config/omarchy/themes/</code> or <code>~/.local/state/omarchy/current/theme/</code>.</p>
+    </div>
+    <h2 id="bg-label">Background</h2>
+    <div class="row" role="group" aria-labelledby="bg-label">
+      <button type="button" data-bg="theme" aria-pressed="true">Theme</button>
+      <button type="button" data-bg="light" aria-pressed="false">Light</button>
+      <button type="button" data-bg="busy" aria-pressed="false">Busy</button>
+    </div>
+  </div>
+  <div id="groups"></div>
+</main>
+
+<footer>
+  <p>Needs a mouse or trackpad. Made for <a href="https://omarchy.org">Omarchy</a>.
+    <a href="https://github.com/FarzadHayat/omarchy-cursor">Source on GitHub</a>.</p>
+</footer>
+<p class="visually-hidden" aria-live="polite" id="status"></p>
+
+<script src="cursors.js"></script>
 <script src="test/themes.js"></script>
 <script>
-  const themes = window.CURSOR_THEMES;
+  const data = window.CURSOR_THEMES;
+  const hosted = !!(data && data.hosted);
   const extras = ["pencil", "color-picker", "X_cursor", "dotbox", "right_ptr", "center_ptr"];
   // Chromium asks the system for all-scroll when a page wants move, so show move as an image.
   const imageOnly = ["move"];
@@ -120,113 +186,194 @@
     "Resize": ["ew-resize", "ns-resize", "nwse-resize", "nesw-resize", "col-resize", "row-resize",
                "n-resize", "e-resize", "s-resize", "w-resize",
                "nw-resize", "ne-resize", "se-resize", "sw-resize"],
-    "Theme preview only": extras,
+    "More": extras,
   };
-  const main = document.getElementById("groups");
+  const status = document.getElementById("status");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const say = text => { status.textContent = text; };
+
+  // Tiles
   const tiles = [];
   for (const [title, names] of Object.entries(groups)) {
     const section = document.createElement("section");
     const h = document.createElement("h2");
     h.textContent = title;
     const ul = document.createElement("ul");
+    ul.className = "tiles";
     for (const name of names) {
       const li = document.createElement("li");
-      li.textContent = name;
       li.tabIndex = 0;
-      li.setAttribute("aria-label", `${name} cursor`);
+      const img = document.createElement("img");
+      img.className = "px";
+      img.alt = "";
+      const label = document.createElement("span");
+      label.textContent = name;
+      li.append(img, label);
       ul.append(li);
-      tiles.push({ li, name, extra: extras.includes(name) });
+      tiles.push({ li, img, name });
     }
     section.append(h, ul);
-    if (title === "Theme preview only") section.id = "extras";
-    main.append(section);
+    if (title === "More") section.id = "extras";
+    document.getElementById("groups").append(section);
   }
 
-  // A cursor image drawn at 2x art scale, shown at 24 CSS pixels like the installed size.
-  function cursorFor(theme, name, frame) {
-    const cur = theme.cursors[name];
-    const src = cur.frames[frame % cur.frames.length];
-    const [x, y] = cur.hotspot.map(v => Math.round(v / 1.5));
-    const fallback = extras.includes(name) ? "default" : name;
-    return `image-set(url("${src}") 1.5x) ${x} ${y}, ${fallback}`;
-  }
-
-  let timer = null;
-  function setTheme(key) {
-    const theme = key && themes ? themes.themes[key] : null;
-    clearInterval(timer);
-    const root = document.documentElement.style;
-    for (const prop of ["--bg", "--tile", "--fg", "--focus"]) root.removeProperty(prop);
-    if (theme) {
-      root.setProperty("--bg", theme.background);
-      root.setProperty("--fg", theme.foreground);
-      root.setProperty("--focus", theme.accent);
-      root.setProperty("--tile", `color-mix(in srgb, ${theme.background}, ${theme.light ? "#000" : "#fff"} 8%)`);
-    }
-    document.getElementById("extras").hidden = !theme;
-    document.getElementById("note").hidden = !!theme;
-    for (const t of tiles) {
-      const active = themes && themes.themes[themes.active];
-      if (theme) t.li.style.cursor = cursorFor(theme, t.name, 0);
-      else if (imageOnly.includes(t.name) && active) t.li.style.cursor = cursorFor(active, t.name, 0);
-      else t.li.style.cursor = t.name;
-      t.li.onpointerenter = t.li.onpointerleave = null;
-      const cur = theme && theme.cursors[t.name];
-      if (cur && cur.frames.length > 1) {
-        let frame = 0;
-        t.li.onpointerenter = () => {
-          clearInterval(timer);
-          timer = setInterval(() => { t.li.style.cursor = cursorFor(theme, t.name, ++frame); }, cur.delay);
+  // Each theme's frames are drawn once and cached.
+  const cache = new Map();
+  function rendered(key, colors) {
+    if (!cache.has(key)) {
+      const pal = palette(colors);
+      const out = {};
+      for (const [name, art] of Object.entries(data.art)) {
+        out[name] = {
+          ...art,
+          cursor: art.frames.map(f => renderFrame(f, pal, 2)),
+          icon: art.frames.map(f => renderFrame(f, pal, 3)),
         };
-        t.li.onpointerleave = () => clearInterval(timer);
       }
+      cache.set(key, out);
     }
+    return cache.get(key);
   }
 
-  const select = document.getElementById("theme");
-  const hosted = themes && themes.hosted;
-  if (hosted) {
-    // Visitors don't have the cursor installed, so only theme previews make sense.
-    select.querySelector('option[value=""]').remove();
-    document.title = "Omarchy Cursor";
-    document.querySelector("h1").textContent = "Omarchy Cursor";
-    document.querySelector("header p").textContent =
-      "Animated 8-bit cursors that match your Omarchy theme. Hover a tile to try one on your pointer.";
-    const help = document.getElementById("theme-help");
-    help.textContent = "Previewing in your browser, nothing to install. Like it? ";
-    const link = document.createElement("a");
-    link.href = "https://github.com/FarzadHayat/omarchy-cursor";
-    link.textContent = "Install it from GitHub";
-    help.append(link, ". Needs a mouse or trackpad.");
+  // The 2x image is shown at 24 CSS pixels, the size the installed cursor uses.
+  function cssCursor(cur, frame, fallback) {
+    const [x, y] = cur.hotspot.map(v => Math.round((v * 2 + 1) / 1.5));
+    return `image-set(url("${cur.cursor[frame % cur.cursor.length]}") 1.5x) ${x} ${y}, ${fallback}`;
   }
-  if (themes) {
-    for (const key of Object.keys(themes.themes)) {
-      const label = key === themes.active && !hosted ? `${key} (active)` : key;
-      select.append(new Option(label, key));
+
+  // Animated icons and the hovered cursor share one clock.
+  let tick = 0, hovered = null, current = null, installed = false;
+  setInterval(() => {
+    if (!current) return;
+    tick++;
+    for (const t of tiles) {
+      const cur = current[t.name];
+      if (cur.frames.length < 2) continue;
+      const frame = Math.floor(tick * 40 / cur.delay);
+      if (!reduceMotion || t === hovered) t.img.src = cur.icon[frame % cur.icon.length];
+      if (t === hovered && !installed) t.li.style.cursor = cssCursor(cur, frame, t.name);
     }
+  }, 40);
+
+  for (const t of tiles) {
+    t.li.addEventListener("pointerenter", () => { hovered = t; });
+    t.li.addEventListener("pointerleave", () => { if (hovered === t) hovered = null; });
+  }
+
+  function show(key, colors, label) {
+    installed = key === "installed";
+    current = rendered(key, colors);
+    const root = document.documentElement;
+    root.style.setProperty("--bg", colors.background);
+    root.style.setProperty("--fg", colors.foreground);
+    root.style.setProperty("--accent", colors.accent);
+    root.toggleAttribute("data-light", colors.mode === "light");
+    for (const t of tiles) {
+      const cur = current[t.name];
+      t.img.src = cur.icon[0];
+      if (installed && !imageOnly.includes(t.name)) t.li.style.cursor = t.name;
+      else t.li.style.cursor = cssCursor(cur, 0, extras.includes(t.name) ? "default" : t.name);
+    }
+    // Browsers have no CSS name for these, so they can't show the installed cursor.
+    document.getElementById("extras").hidden = installed;
+    for (const b of document.querySelectorAll("#themes button")) {
+      b.setAttribute("aria-pressed", String(b.dataset.key === key));
+    }
+    document.getElementById("parade").replaceChildren(
+      ...["default", "pointer", "grab", "text", "wait", "help"].map(name => {
+        const img = document.createElement("img");
+        img.className = "px";
+        img.alt = "";
+        img.src = current[name].icon[0];
+        return img;
+      }));
+    say(`Showing ${label}`);
+  }
+
+  // Theme chips
+  const chips = document.getElementById("themes");
+  function chip(key, label, colors) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.dataset.key = key;
+    const sw = document.createElement("span");
+    sw.className = "swatch";
+    sw.setAttribute("aria-hidden", "true");
+    for (const color of [colors.background, colors.accent]) {
+      const i = document.createElement("i");
+      i.style.background = color;
+      sw.append(i);
+    }
+    b.append(sw, label);
+    b.addEventListener("click", () => show(key, colors, label));
+    chips.append(b);
+    return b;
+  }
+
+  if (!data) {
+    document.getElementById("load-help").textContent = "Run ./build.py --test-page to enable the previews.";
   } else {
-    select.disabled = true;
-    document.getElementById("theme-help").textContent =
-      "Run ./build.py --test-page to enable theme previews.";
+    if (hosted) {
+      document.title = "Omarchy Cursor";
+      document.getElementById("tagline").textContent =
+        "Animated 8-bit cursors that recolor themselves to match your Omarchy theme. Hover a tile to try one on your pointer.";
+      document.getElementById("install").hidden = false;
+    } else if (data.themes[data.active]) {
+      chip("installed", "Installed cursor", data.themes[data.active]);
+    }
+    for (const [key, colors] of Object.entries(data.themes)) {
+      chip(key, key === data.active && !hosted ? `${key} (active)` : key, colors);
+    }
+    const wanted = new URLSearchParams(location.search).get("theme");
+    const start = data.themes[wanted] ? wanted : hosted || !data.themes[data.active] ? data.active : "installed";
+    const startColors = data.themes[start === "installed" ? data.active : start] || Object.values(data.themes)[0];
+    show(start, startColors, start === "installed" ? "Installed cursor" : start);
   }
-  select.addEventListener("change", () => {
-    setTheme(select.value);
-    status.textContent = select.value ? `Previewing ${select.value}` : "Installed cursor";
-  });
-  const wanted = new URLSearchParams(location.search).get("theme") || "";
-  select.value = themes && themes.themes[wanted] ? wanted : hosted ? themes.active : "";
-  setTheme(select.value);
 
-  const status = document.getElementById("status");
+  // A visitor's own colors.toml, read in the browser and never uploaded.
+  const file = document.getElementById("file");
+  async function useFile(f) {
+    try {
+      const colors = parseColors(await f.text());
+      const key = `custom:${f.name}:${f.size}:${f.lastModified}`;
+      chips.querySelector('[data-key^="custom:"]')?.remove();
+      chip(key, "Your theme", colors);
+      show(key, colors, "your theme");
+    } catch (e) {
+      const message = "That file has no accent color. Pick an Omarchy colors.toml.";
+      document.getElementById("load-help").textContent = message;
+      say(message);
+    }
+  }
+  document.getElementById("load").addEventListener("click", () => file.click());
+  file.addEventListener("change", () => file.files[0] && useFile(file.files[0]));
+  addEventListener("dragover", e => { e.preventDefault(); document.documentElement.classList.add("dragging"); });
+  addEventListener("dragleave", e => { if (!e.relatedTarget) document.documentElement.classList.remove("dragging"); });
+  addEventListener("drop", e => {
+    e.preventDefault();
+    document.documentElement.classList.remove("dragging");
+    if (e.dataTransfer.files[0]) useFile(e.dataTransfer.files[0]);
+  });
+
+  // Background
   for (const button of document.querySelectorAll("button[data-bg]")) {
     button.addEventListener("click", () => {
-      document.documentElement.dataset.bg = button.dataset.bg;
+      const root = document.documentElement;
+      if (button.dataset.bg === "theme") delete root.dataset.bg;
+      else root.dataset.bg = button.dataset.bg;
       for (const b of document.querySelectorAll("button[data-bg]")) {
         b.setAttribute("aria-pressed", String(b === button));
       }
-      status.textContent = `${button.textContent} background`;
+      say(`${button.textContent} background`);
     });
   }
+
+  document.getElementById("copy").addEventListener("click", async () => {
+    await navigator.clipboard.writeText(document.getElementById("command").textContent);
+    document.getElementById("copy").textContent = "Copied";
+    say("Install command copied");
+  });
 </script>
 </body>
 </html>
