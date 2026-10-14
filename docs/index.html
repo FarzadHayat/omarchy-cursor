@@ -116,9 +116,8 @@
   .bar .brand img { width: 27px; height: 27px; }
   .workspaces { display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none; flex: 1; justify-content: center; }
   .workspaces a {
-    min-width: 2.25rem;
     min-height: 2.25rem;
-    padding: 0 0.6rem;
+    padding: 0 0.85rem;
     display: grid;
     place-items: center;
     border-radius: 999px;
@@ -140,6 +139,7 @@
   }
   .window { display: grid; grid-template-rows: auto 1fr; min-width: 0; overflow: hidden; }
   .window.wide { grid-column: 1 / -1; }
+  .window { scroll-margin-top: 80px; }
   .titlebar {
     display: flex;
     align-items: center;
@@ -278,7 +278,7 @@
       <p class="tagline" id="tagline">Test area. Hover a tile to see that cursor on your real pointer.</p>
       <div class="install" id="install" hidden>
         <div class="command">
-          <code id="command" tabindex="0" aria-label="Install command">omarchy pkg add xorg-xcursorgen &amp;&amp; git clone https://github.com/FarzadHayat/omarchy-pixel-cursors.git ~/.local/share/omarchy-pixel-cursors &amp;&amp; ~/.local/share/omarchy-pixel-cursors/install.sh</code>
+          <code id="command" tabindex="0" aria-label="Install command">curl -fsSL https://cursors.farzadhayat.dev/install | bash</code>
           <button type="button" id="copy">Copy</button>
         </div>
         <a class="button primary" href="https://github.com/FarzadHayat/omarchy-pixel-cursors">View on GitHub</a>
@@ -343,6 +343,7 @@
 
   // Each cursor group is a tiled window, with a matching workspace in the bar.
   const tiles = [];
+  const short = { "Drag and drop": "Drag", "Selection": "Select" };
   const workspaces = document.getElementById("workspaces");
   Object.entries(groups).forEach(([title, names], i) => {
     const id = title.toLowerCase().replace(/\W+/g, "-");
@@ -378,9 +379,7 @@
 
     const link = document.createElement("a");
     link.href = `#${id}`;
-    link.textContent = i + 1;
-    link.title = title;
-    link.setAttribute("aria-label", title);
+    link.textContent = short[title] || title;
     workspaces.append(link);
   });
 
@@ -413,7 +412,7 @@
         out[name] = {
           ...art,
           cursor: art.frames.map(f => renderFrame(f, pal, 2)),
-          icon: art.frames.map(f => renderFrame(f, pal, 3)),
+          icon: centered(art.frames).map(f => renderFrame(f, pal, 3)),
         };
       }
       cache.set(key, out);

@@ -125,4 +125,21 @@ function renderFrame(rows, colors, scale) {
   return canvas.toDataURL();
 }
 
+// Frames shifted so the drawing sits in the middle of its square, for icons.
+// One offset for all frames, so animations don't jitter.
+function centered(frames) {
+  const size = frames[0].length;
+  let x0 = size, x1 = 0, y0 = size, y1 = 0;
+  for (const rows of frames) {
+    rows.forEach((r, y) => [...r].forEach((c, x) => {
+      if (c === ".") return;
+      x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+    }));
+  }
+  const dx = Math.floor((size - (x1 - x0 + 1)) / 2) - x0;
+  const dy = Math.floor((size - (y1 - y0 + 1)) / 2) - y0;
+  return frames.map(rows => Array.from({ length: size }, (_, y) =>
+    Array.from({ length: size }, (_, x) => (rows[y - dy] || "")[x - dx] || ".").join("")));
+}
+
 if (typeof module !== "undefined") module.exports = { palette, parseColors };

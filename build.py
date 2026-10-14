@@ -337,6 +337,7 @@ def main():
         page = page.replace("<title>Omarchy Pixel Cursors test area</title>", "<title>Omarchy Pixel Cursors</title>")
         (args.site / "index.html").write_text(page)
         shutil.copy(ROOT / "cursors.js", args.site / "cursors.js")
+        shutil.copy(ROOT / "web-install.sh", args.site / "install")  # curl ... | bash
         (args.site / "CNAME").write_text(f"{SITE_DOMAIN}\n")  # custom domain for GitHub Pages
         print(f"Wrote site to {args.site}")
         return

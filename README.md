@@ -17,7 +17,11 @@ Animated 8-bit cursors for [Omarchy](https://omarchy.org) that take their colors
 
 ## Install
 
-Omarchy already ships `python3` and `hyprcursor`. You also need `xorg-xcursorgen`:
+```bash
+curl -fsSL https://cursors.farzadhayat.dev/install | bash
+```
+
+This installs `xorg-xcursorgen` if needed, downloads the repo to `~/.local/share/omarchy-pixel-cursors` and runs `install.sh`. Run it again to update. To do it by hand:
 
 ```bash
 omarchy pkg add xorg-xcursorgen
@@ -65,4 +69,4 @@ The hosted version in `docs/` is built with `./build.py --site docs` from the st
 - `test.html`: cursor test area
 - `docs/`: hosted copy of the test area
 - `hooks/omarchy-cursor-sync`: Omarchy `theme-set` hook
-- `install.sh`, `uninstall.sh`
+- `install.sh`, `uninstall.sh`, `web-install.sh` (served as the one line installer)
