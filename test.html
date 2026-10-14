@@ -139,20 +139,9 @@
     align-items: center;
     gap: 0.75rem;
   }
+  .bar { justify-content: space-between; }
   .bar .brand { display: flex; align-items: center; gap: 0.4rem; font-weight: 700; padding-left: 0.4rem; }
   .bar .brand img { width: 27px; height: 27px; }
-  .workspaces { display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none; flex: 1; justify-content: center; }
-  .workspaces a {
-    min-height: 2.25rem;
-    padding: 0 0.85rem;
-    display: grid;
-    place-items: center;
-    border-radius: 999px;
-    color: var(--muted);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .workspaces a[aria-current="true"] { background: var(--border); color: var(--bg); font-weight: 700; }
   .bar .clock { color: var(--muted); padding-right: 0.6rem; white-space: nowrap; }
 
   /* Tiled windows */
@@ -166,7 +155,6 @@
   }
   .window { display: grid; grid-template-rows: auto 1fr; min-width: 0; overflow: hidden; }
   .window.wide { grid-column: 1 / -1; }
-  .window { scroll-margin-top: 80px; }
   .titlebar {
     display: flex;
     align-items: center;
@@ -303,8 +291,7 @@
 
   @media (max-width: 760px) {
     main { grid-template-columns: minmax(0, 1fr); }
-    .bar .clock, .bar .brand span { display: none; }
-    .workspaces { justify-content: flex-start; }
+    .bar .clock { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
     body::before { animation: none; }
@@ -313,11 +300,10 @@
 </style>
 </head>
 <body>
-<nav class="bar glass" aria-label="Sections">
+<div class="bar glass">
   <span class="brand"><img class="px" id="brand" alt=""> <span>pixel cursors</span></span>
-  <div class="workspaces" id="workspaces"></div>
   <span class="clock" id="clock" aria-hidden="true"></span>
-</nav>
+</div>
 
 <main>
   <section class="window glass" aria-labelledby="hero-title">
@@ -413,11 +399,9 @@
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const say = text => { status.textContent = text; };
 
-  // Each cursor group is a tiled window, with a matching workspace in the bar.
+  // Each cursor group is a tiled window.
   const tiles = [];
-  const short = { "Drag and drop": "Drag", "Selection": "Select" };
-  const workspaces = document.getElementById("workspaces");
-  Object.entries(groups).forEach(([title, names], i) => {
+  Object.entries(groups).forEach(([title, names]) => {
     const id = title.toLowerCase().replace(/\W+/g, "-");
     const section = document.createElement("section");
     section.className = "window glass" + (names.length > 6 ? " wide" : "");
@@ -448,24 +432,7 @@
     body.append(ul);
     section.append(bar, body);
     document.getElementById("groups").append(section);
-
-    const link = document.createElement("a");
-    link.href = `#${id}`;
-    link.textContent = short[title] || title;
-    workspaces.append(link);
   });
-
-  // Highlight the workspace for the section in view, like Waybar.
-  const links = [...workspaces.querySelectorAll("a")];
-  const observer = new IntersectionObserver(entries => {
-    for (const e of entries) {
-      if (e.isIntersecting) {
-        for (const a of links) a.setAttribute("aria-current", String(a.hash === `#${e.target.id}`));
-      }
-    }
-  }, { rootMargin: "-40% 0px -55% 0px" });
-  document.querySelectorAll("#groups > section").forEach(s => observer.observe(s));
-  links[0].setAttribute("aria-current", "true");
 
   const clock = document.getElementById("clock");
   const tickClock = () => {
@@ -569,7 +536,6 @@
     }
     // Browsers have no CSS name for these, so they can't show the installed cursor.
     document.getElementById("more").hidden = installed;
-    links[links.length - 1].hidden = installed;
     for (const b of document.querySelectorAll("#themes button")) {
       b.setAttribute("aria-pressed", String(b.dataset.key === key));
     }
