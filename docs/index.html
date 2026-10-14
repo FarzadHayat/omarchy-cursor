@@ -428,10 +428,14 @@
   }
 
   // Animated icons and the hovered cursor share one clock.
-  let tick = 0, hovered = null, current = null, installed = false;
+  let tick = 0, hovered = null, current = null, installed = false, paradeWait = null;
   setInterval(() => {
     if (!current) return;
     tick++;
+    if (paradeWait && !reduceMotion) {
+      const cur = current.wait;
+      paradeWait.src = cur.icon[Math.floor(tick * 40 / cur.delay) % cur.icon.length];
+    }
     for (const t of tiles) {
       const cur = current[t.name];
       if (cur.frames.length < 2) continue;
@@ -489,6 +493,7 @@
         img.className = "px";
         img.alt = "";
         img.src = current[name].icon[0];
+        if (name === "wait") paradeWait = img;
         return img;
       }));
     say(`Showing ${label}`);

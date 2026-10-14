@@ -430,7 +430,7 @@ def all_cursors(frames=16, delay=70):
     for g in (head, head.rot90(), head.rot90().rot90(), head.rot90().rot90().rot90()):
         move.over(g)
     yield Cursor("move", (8, 8), [move],
-                 ["fleur", "size_all", "4498f0e0c1937ffe01fd06f973665830",
+                 ["fleur", "size_all", "all-resize", "pointer-move", "4498f0e0c1937ffe01fd06f973665830",
                   "9081237383d90e509aa00f00170e968f"])
 
     scroll = disk(8, 8, 0, 1.2)
